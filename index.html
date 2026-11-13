@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Catequesis & Monaguillos</title>
+  <!-- Tailwind CSS via CDN para funcionamiento autónomo en navegador móvil/PC -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    input, textarea, select {
+      user-select: auto;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- VISTA MÓVIL CONTENEDOR (Optimizado para smartphone y centrado en PC) -->
+  <div class="max-w-md mx-auto w-full min-h-screen bg-white shadow-xl flex flex-col relative pb-20">
+    
+    <!-- HEADER -->
+    <header class="bg-indigo-600 text-white px-4 py-3.5 sticky top-0 z-30 shadow-md">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/80 flex items-center justify-center font-bold text-white text-lg shadow-inner">
+            ✝
+          </div>
+          <div>
+            <h1 class="text-base font-bold leading-tight">Parroquia - Jóvenes</h1>
+            <p class="text-xs text-indigo-200" id="headerSubtitle">Confirmación & Monaguillos</p>
+          </div>
+        </div>
+        <button id="btnNewModal" onclick="openModal()" class="bg-white text-indigo-700 px-3 py-1.5 rounded-full text-xs font-semibold shadow hover:bg-indigo-50 active:scale-95 transition flex items-center space-x-1">
+          <span class="text-base leading-none font-bold">+</span>
+          <span>Añadir</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL SEGÚN PESTAÑA -->
+    <main class="flex-1 p-3.5 overflow-y-auto">
+
+      <!-- PESTAÑA 1: LISTADO DE MUCHACHOS -->
+      <section id="tab-boys" class="space-y-3">
+        <!-- Buscador y Filtros -->
+        <div class="space-y-2">
+          <div class="relative">
+            <input type="text" id="searchInput" oninput="renderList()" placeholder="Buscar por nombre..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+
+          <!-- Filtro de Grupo -->
+          <div class="flex space-x-1.5 overflow-x-auto pb-1 text-xs custom-scroll">
+            <button onclick="setFilter('todos')" id="filter-todos" class="filter-btn px-3 py-1 rounded-full font-medium bg-indigo-600 text-white">Todos</button>
+            <button onclick="setFilter('Confirmación')" id="filter-Confirmación" class="filter-btn px-3 py-1 rounded-full font-medium bg-slate-100 text-slate-600">Confirmación</button>
+            <button onclick="setFilter('Monaguillo')" id="filter-Monaguillo" class="filter-btn px-3 py-1 rounded-full font-medium bg-slate-100 text-slate-600">Monaguillos</button>
+          </div>
+        </div>
+
+        <!-- Lista de tarjetas -->
+        <div id="boysList" class="space-y-2.5">
+          <!-- Renderizado dinámico -->
+        </div>
+      </section>
+
+      <!-- PESTAÑA 2: ASISTENCIA RÁPIDA -->
+      <section id="tab-attendance" class="hidden space-y-3">
+        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-bold text-indigo-900">Fecha de la Sesión:</label>
+            <input type="date" id="attendanceDate" onchange="renderAttendance()" class="text-xs bg-white border border-indigo-200 rounded-lg px-2 py-1 font-semibold text-slate-700 focus:outline-none" />
+          </div>
+          <div class="flex justify-between items-center text-xs text-indigo-800">
+            <span>Presentes: <b id="presentCount" class="text-emerald-700">0</b> / <span id="totalStudents">0</span></span>
+            <span id="rateLabel" class="bg-indigo-200/80 px-2 py-0.5 rounded-full font-semibold">0%</span>
+          </div>
+          <!-- Barra de progreso -->
+          <div class="w-full bg-indigo-200 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div id="attendanceProgressBar" class="bg-emerald-500 h-1.5 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center px-1">
+          <p class="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Pasar Lista con 1 toque</p>
+          <button onclick="markAllPresent()" class="text-xs text-indigo-600 font-medium hover:underline">Todos Presentes</button>
+        </div>
+
+        <div id="attendanceList" class="space-y-2">
+          <!-- Renderizado dinámico de asistencia -->
+        </div>
+      </section>
+
+      <!-- PESTAÑA 3: RESUMEN / AFICIONES -->
+      <section id="tab-stats" class="hidden space-y-3.5">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-3 rounded-2xl text-white shadow-sm">
+            <p class="text-xs text-indigo-100 font-medium">Inscritos Totales</p>
+            <p class="text-2xl font-bold mt-1" id="statTotal">0</p>
+            <p class="text-[11px] text-indigo-200 mt-0.5" id="statSubgroups">0 Conf. · 0 Mon.</p>
+          </div>
+          <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white shadow-sm">
+            <p class="text-xs text-emerald-100 font-medium">Media Asistencia</p>
+            <p class="text-2xl font-bold mt-1" id="statAvgAttendance">0%</p>
+            <p class="text-[11px] text-emerald-100 mt-0.5">En las sesiones</p>
+          </div>
+        </div>
+
+        <!-- Aficiones más comunes (útil para dinámicas y juegos) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span>Aficiones más populares</span>
+            <span class="text-[11px] text-indigo-600 font-normal">Para dinámicas</span>
+          </h3>
+          <div id="hobbiesCloud" class="flex flex-wrap gap-1.5 pt-1">
+            <!-- Píldoras de aficiones -->
+          </div>
+        </div>
+
+        <!-- Exportación de respaldo -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
+          <h4 class="text-xs font-bold text-slate-700">Copias y Respaldo</h4>
+          <p class="text-xs text-slate-500">Puedes guardar una copia de seguridad de los muchachos y las asistencias en tu teléfono.</p>
+          <div class="flex space-x-2 pt-1">
+            <button onclick="exportData()" class="flex-1 bg-white border border-slate-300 py-1.5 px-3 rounded-xl text-xs font-semibold text-slate-700 shadow-sm active:bg-slate-100 flex items-center justify-center space-x-1">
+              <span>Descargar Copia</span>
+            </button>
+            <button onclick="resetDemoData()" class="text-xs text-rose-600 px-2 py-1 hover:underline">Reiniciar demo</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BARRA DE NAVEGACIÓN INFERIOR (Smartphone) -->
+    <nav class="fixed bottom-0 max-w-md w-full bg-white/95 backdrop-blur-md border-t border-slate-200 py-1.5 px-6 flex justify-around items-center z-40">
+      <button onclick="switchTab('boys')" id="nav-boys" class="nav-btn flex flex-col items-center text-indigo-600 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        <span class="text-[10px] font-bold mt-0.5">Muchachos</span>
+      </button>
+
+      <button onclick="switchTab('attendance')" id="nav-attendance" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        <span class="text-[10px] font-medium mt-0.5">Asistencia</span>
+      </button>
+
+      <button onclick="switchTab('stats')" id="nav-stats" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <span class="text-[10px] font-medium mt-0.5">Resumen</span>
+      </button>
+    </nav>
+
+    <!-- MODAL FORMULARIO: REGISTRAR / EDITAR MUCHACHO -->
+    <div id="modalForm" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
+        
+        <div class="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <h3 id="modalTitle" class="text-sm font-bold text-slate-800">Ficha del Muchacho</h3>
+          <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">&times;</button>
+        </div>
+
+        <form id="boyForm" onsubmit="saveBoy(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs">
+          <input type="hidden" id="boyId" />
+
+          <!-- Nombre y Apellidos -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nombre y Apellidos *</label>
+            <input type="text" id="boyName" required placeholder="Ej: Lucas Morales Ruiz" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          </div>
+
+          <!-- Grupo / Rol -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Grupo / Rol *</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
+                <input type="radio" name="boyRole" value="Confirmación" checked class="hidden" />
+                <span>Confirmación</span>
+              </label>
+              <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
+                <input type="radio" name="boyRole" value="Monaguillo" class="hidden" />
+                <span>Monaguillo</span>
+              </label>
+              <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
+                <input type="radio" name="boyRole" value="Ambos" class="hidden" />
+                <span>Ambos</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Edad y Nº Hermanos -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Edad (años)</label>
+              <input type="number" id="boyAge" min="7" max="25" placeholder="14" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Nº de Hermanos</label>
+              <input type="number" id="boySiblings" min="0" max="15" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <!-- Teléfono -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Teléfono (Contacto/Padres) *</label>
+            <div class="relative">
+              <input type="tel" id="boyPhone" required placeholder="Ej: +34 612 34 56 78" class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+              <span class="absolute left-3 top-2.5 text-slate-400">📞</span>
+            </div>
+          </div>
+
+          <!-- Aficiones (Listado seleccionable interactivo) -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Aficiones (toca para seleccionar)</label>
+            <div id="hobbiesSelector" class="flex flex-wrap gap-1.5 pt-1">
+              <!-- Renderizado interactivo de aficiones -->
+            </div>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+            <button type="button" id="btnDelete" onclick="deleteCurrentBoy()" class="text-rose-600 font-semibold px-2 py-1 rounded hover:bg-rose-50 hidden">
+              Eliminar
+            </button>
+            <div class="flex space-x-2 ml-auto">
+              <button type="button" onclick="closeModal()" class="px-3.5 py-2 rounded-xl text-slate-600 bg-slate-100 font-medium">Cancelar</button>
+              <button type="submit" class="px-5 py-2 rounded-xl text-white bg-indigo-600 font-semibold shadow hover:bg-indigo-700">Guardar</button>
+            </div>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // LISTADO DE AFICIONES PREDEFINIDAS
+    const DEFAULT_HOBBIES = [
+      "Fútbol", "Pintar / Dibujar", "Música / Guitarra", 
+      "Videojuegos", "Baloncesto", "Lectura", 
+      "Teatro", "Natación", "Ciclismo", "Cocina", "Manualidades"
+    ];
+
+    // DATOS DE EJEMPLO INICIALES
+    const INITIAL_BOYS = [
+      {
+        id: "1",
+        name: "Mateo Fernández Gómez",
+        role: "Confirmación",
+        age: 14,
+        siblings: 2,
+        phone: "+34611223344",
+        hobbies: ["Fútbol", "Videojuegos"]
+      },
+      {
+        id: "2",
+        name: "Sofía Ruiz Navarro",
+        role: "Monaguillo",
+        age: 11,
+        siblings: 1,
+        phone: "+34622334455",
+        hobbies: ["Pintar / Dibujar", "Lectura", "Música / Guitarra"]
+      },
+      {
+        id: "3",
+        name: "Javier Sánchez Díaz",
+        role: "Ambos",
+        age: 13,
+        siblings: 3,
+        phone: "+34633445566",
+        hobbies: ["Baloncesto", "Ciclismo"]
+      },
+      {
+        id: "4",
+        name: "Elena Martín Vega",
+        role: "Confirmación",
+        age: 15,
+        siblings: 0,
+        phone: "+34644556677",
+        hobbies: ["Teatro", "Pintar / Dibujar"]
+      }
+    ];
+
+    // ESTADO LOCAL
+    let boys = JSON.parse(localStorage.getItem("catequesis_boys")) || INITIAL_BOYS;
+    let attendance = JSON.parse(localStorage.getItem("catequesis_attendance")) || {};
+    let currentFilter = "todos";
+    let selectedHobbies = new Set();
+
+    // Fecha actual (YYYY-MM-DD)
+    const today = new Date().toISOString().split('T')[0];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("attendanceDate").value = today;
+      renderList();
+      renderAttendance();
+      updateStats();
+    });
+
+    function saveState() {
+      localStorage.setItem("catequesis_boys", JSON.stringify(boys));
+      localStorage.setItem("catequesis_attendance", JSON.stringify(attendance));
+      updateStats();
+    }
+
+    // PESTAÑAS
+    function switchTab(tabId) {
+      ['boys', 'attendance', 'stats'].forEach(id => {
+        document.getElementById(`tab-${id}`).classList.add("hidden");
+        const navBtn = document.getElementById(`nav-${id}`);
+        navBtn.classList.remove("text-indigo-600");
+        navBtn.classList.add("text-slate-400");
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      activeNav.classList.add("text-indigo-600");
+      activeNav.classList.remove("text-slate-400");
+
+      if (tabId === 'attendance') renderAttendance();
+      if (tabId === 'stats') updateStats();
+    }
+
+    // FILTRO DE LISTA
+    function setFilter(role) {
+      currentFilter = role;
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.classList.remove("bg-indigo-600", "text-white");
+        btn.classList.add("bg-slate-100", "text-slate-600");
+      });
+      document.getElementById(`filter-${role}`).classList.add("bg-indigo-600", "text-white");
+      document.getElementById(`filter-${role}`).classList.remove("bg-slate-100", "text-slate-600");
+      renderList();
+    }
+
+    // RENDERIZAR LISTA DE MUCHACHOS
+    function renderList() {
+      const query = document.getElementById("searchInput").value.toLowerCase().trim();
+      const container = document.getElementById("boysList");
+      container.innerHTML = "";
+
+      const filtered = boys.filter(b => {
+        const matchesFilter = currentFilter === 'todos' || b.role === currentFilter || (b.role === 'Ambos');
+        const matchesQuery = b.name.toLowerCase().includes(query) || (b.phone && b.phone.includes(query));
+        return matchesFilter && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400">
+            <p class="text-2xl mb-1">🔍</p>
+            <p class="text-xs">No se encontraron muchachos con este criterio</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(boy => {
+        const cleanPhone = boy.phone ? boy.phone.replace(/[^0-9+]/g, '') : '';
+        const roleBadgeClass = boy.role === 'Confirmación' 
+          ? 'bg-purple-100 text-purple-700' 
+          : boy.role === 'Monaguillo' 
+            ? 'bg-amber-100 text-amber-800' 
+            : 'bg-emerald-100 text-emerald-800';
+
+        const card = document.createElement("div");
+        card.className = "bg-white border border-slate-200/80 rounded-2xl p-3 shadow-xs hover:border-indigo-300 transition";
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="flex-1 cursor-pointer" onclick="openModal('${boy.id}')">
+              <div class="flex items-center space-x-2">
+                <span class="font-bold text-slate-800 text-xs">${boy.name}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${roleBadgeClass}">
+                  ${boy.role}
+                </span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-1 flex items-center space-x-3">
+                <span>🎂 <b>${boy.age || '-'}</b> años</span>
+                <span>👨‍👩‍👧 <b>${boy.siblings !== undefined ? boy.siblings : '-'}</b> hermano(s)</span>
+              </div>
+              <div class="flex flex-wrap gap-1 mt-2">
+                ${(boy.hobbies || []).map(h => `<span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-medium">${h}</span>`).join('')}
+              </div>
+            </div>
+
+            <!-- Botones directos de teléfono y WhatsApp para Smartphone -->
+            <div class="flex flex-col space-y-1 ml-2">
+              <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition" title="Llamar">
+                📞
+              </a>
+              <a href="https://wa.me/${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition" title="Enviar WhatsApp">
+                💬
+              </a>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // GESTIÓN DE ASISTENCIA
+    function renderAttendance() {
+      const date = document.getElementById("attendanceDate").value || today;
+      const dayRecord = attendance[date] || {};
+      const container = document.getElementById("attendanceList");
+      container.innerHTML = "";
+
+      let presentCount = 0;
+      const total = boys.length;
+
+      document.getElementById("totalStudents").innerText = total;
+
+      boys.forEach(boy => {
+        const isPresent = dayRecord[boy.id] === true;
+        if (isPresent) presentCount++;
+
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl shadow-xs";
+        row.innerHTML = `
+          <div>
+            <p class="text-xs font-bold text-slate-800">${boy.name}</p>
+            <p class="text-[10px] text-slate-500">${boy.role}</p>
+          </div>
+          <div class="flex space-x-1.5">
+            <button onclick="setAttendance('${boy.id}', true)" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${isPresent ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700'}">
+              <span>✓ Presente</span>
+            </button>
+            <button onclick="setAttendance('${boy.id}', false)" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${!isPresent && dayRecord[boy.id] !== undefined ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-700'}">
+              <span>✕ Falta</span>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      document.getElementById("presentCount").innerText = presentCount;
+      const rate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
+      document.getElementById("rateLabel").innerText = `${rate}%`;
+      document.getElementById("attendanceProgressBar").style.width = `${rate}%`;
+    }
+
+    function setAttendance(boyId, status) {
+      const date = document.getElementById("attendanceDate").value || today;
+      if (!attendance[date]) attendance[date] = {};
+      attendance[date][boyId] = status;
+      saveState();
+      renderAttendance();
+    }
+
+    function markAllPresent() {
+      const date = document.getElementById("attendanceDate").value || today;
+      if (!attendance[date]) attendance[date] = {};
+      boys.forEach(b => {
+        attendance[date][b.id] = true;
+      });
+      saveState();
+      renderAttendance();
+    }
+
+    // MODAL FORMULARIO
+    function openModal(boyId = null) {
+      selectedHobbies.clear();
+      document.getElementById("boyForm").reset();
+      document.getElementById("btnDelete").classList.add("hidden");
+
+      if (boyId) {
+        const boy = boys.find(b => b.id === boyId);
+        if (boy) {
+          document.getElementById("modalTitle").innerText = "Editar Muchacho";
+          document.getElementById("boyId").value = boy.id;
+          document.getElementById("boyName").value = boy.name;
+          document.getElementById("boyAge").value = boy.age || '';
+          document.getElementById("boySiblings").value = boy.siblings !== undefined ? boy.siblings : 0;
+          document.getElementById("boyPhone").value = boy.phone || '';
+          
+          const roleRadio = document.querySelector(`input[name="boyRole"][value="${boy.role}"]`);
+          if (roleRadio) roleRadio.checked = true;
+
+          (boy.hobbies || []).forEach(h => selectedHobbies.add(h));
+          document.getElementById("btnDelete").classList.remove("hidden");
+        }
+      } else {
+        document.getElementById("modalTitle").innerText = "Registrar Nuevo Muchacho";
+        document.getElementById("boyId").value = "";
+      }
+
+      renderHobbiesSelector();
+      document.getElementById("modalForm").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("modalForm").classList.add("hidden");
+    }
+
+    function renderHobbiesSelector() {
+      const container = document.getElementById("hobbiesSelector");
+      container.innerHTML = "";
+
+      DEFAULT_HOBBIES.forEach(hobby => {
+        const isSelected = selectedHobbies.has(hobby);
+        const pill = document.createElement("button");
+        pill.type = "button";
+        pill.onclick = () => {
+          if (selectedHobbies.has(hobby)) {
+            selectedHobbies.delete(hobby);
+          } else {
+            selectedHobbies.add(hobby);
+          }
+          renderHobbiesSelector();
+        };
+        pill.className = `px-2.5 py-1 rounded-full text-[11px] font-medium transition ${
+          isSelected 
+            ? 'bg-indigo-600 text-white shadow-xs' 
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }`;
+        pill.innerText = (isSelected ? "✓ " : "+ ") + hobby;
+        container.appendChild(pill);
+      });
+    }
+
+    function saveBoy(e) {
+      e.preventDefault();
+      const id = document.getElementById("boyId").value || Date.now().toString();
+      const name = document.getElementById("boyName").value.trim();
+      const role = document.querySelector('input[name="boyRole"]:checked').value;
+      const age = parseInt(document.getElementById("boyAge").value) || null;
+      const siblings = parseInt(document.getElementById("boySiblings").value) || 0;
+      const phone = document.getElementById("boyPhone").value.trim();
+      const hobbiesList = Array.from(selectedHobbies);
+
+      const existingIndex = boys.findIndex(b => b.id === id);
+      const boyData = { id, name, role, age, siblings, phone, hobbies: hobbiesList };
+
+      if (existingIndex > -1) {
+        boys[existingIndex] = boyData;
+      } else {
+        boys.push(boyData);
+      }
+
+      saveState();
+      renderList();
+      closeModal();
+    }
+
+    function deleteCurrentBoy() {
+      const id = document.getElementById("boyId").value;
+      if (confirm("¿Seguro que deseas eliminar este registro?")) {
+        boys = boys.filter(b => b.id !== id);
+        saveState();
+        renderList();
+        closeModal();
+      }
+    }
+
+    // ESTADÍSTICAS Y DINÁMICAS
+    function updateStats() {
+      const total = boys.length;
+      document.getElementById("statTotal").innerText = total;
+
+      const confCount = boys.filter(b => b.role === 'Confirmación' || b.role === 'Ambos').length;
+      const monCount = boys.filter(b => b.role === 'Monaguillo' || b.role === 'Ambos').length;
+      document.getElementById("statSubgroups").innerText = `${confCount} Conf. · ${monCount} Mon.`;
+
+      // Promedio de asistencia
+      const sessionDates = Object.keys(attendance);
+      if (sessionDates.length > 0 && total > 0) {
+        let totalPresents = 0;
+        let totalPossible = sessionDates.length * total;
+        sessionDates.forEach(d => {
+          Object.values(attendance[d]).forEach(val => {
+            if (val === true) totalPresents++;
+          });
+        });
+        const avg = Math.round((totalPresents / totalPossible) * 100);
+        document.getElementById("statAvgAttendance").innerText = `${avg}%`;
+      } else {
+        document.getElementById("statAvgAttendance").innerText = `100%`;
+      }
+
+      // Conteo de aficiones
+      const hobbyCounts = {};
+      boys.forEach(b => {
+        (b.hobbies || []).forEach(h => {
+          hobbyCounts[h] = (hobbyCounts[h] || 0) + 1;
+        });
+      });
+
+      const hobbiesCloud = document.getElementById("hobbiesCloud");
+      hobbiesCloud.innerHTML = "";
+      const sorted = Object.entries(hobbyCounts).sort((a,b) => b[1] - a[1]);
+
+      if (sorted.length === 0) {
+        hobbiesCloud.innerHTML = `<span class="text-xs text-slate-400">Sin aficiones registradas todavía</span>`;
+      } else {
+        sorted.forEach(([h, count]) => {
+          const pill = document.createElement("span");
+          pill.className = "bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-xl flex items-center space-x-1";
+          pill.innerHTML = `<span>${h}</span><b class="bg-indigo-200 text-indigo-800 text-[10px] px-1.5 py-0.2 rounded-full">${count}</b>`;
+          hobbiesCloud.appendChild(pill);
+        });
+      }
+    }
+
+    // EXPORTAR Y REINICIAR
+    function exportData() {
+      const payload = {
+        fechaExportacion: new Date().toISOString(),
+        muchachos: boys,
+        asistencias: attendance
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `catequesis_respaldo_${today}.json`;
+      a.click();
+    }
+
+    function resetDemoData() {
+      if (confirm("¿Restablecer datos de ejemplo? Se sobrescribirá lo actual.")) {
+        boys = INITIAL_BOYS;
+        attendance = {};
+        saveState();
+        renderList();
+        renderAttendance();
+        updateStats();
+      }
+    }
+  </script>
+</body>
+</html>

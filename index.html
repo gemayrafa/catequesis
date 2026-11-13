@@ -52,7 +52,7 @@
         <!-- Buscador y Filtros -->
         <div class="space-y-2">
           <div class="relative">
-            <input type="text" id="searchInput" oninput="renderList()" placeholder="Buscar por nombre o afición..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input type="text" id="searchInput" oninput="renderList()" placeholder="Buscar por nombre, afición o 'sin teléfono'..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -63,6 +63,7 @@
             <button onclick="setFilter('todos')" id="filter-todos" class="filter-btn px-3 py-1 rounded-full font-medium bg-indigo-600 text-white">Todos</button>
             <button onclick="setFilter('Confirmación')" id="filter-Confirmación" class="filter-btn px-3 py-1 rounded-full font-medium bg-slate-100 text-slate-600">Confirmación</button>
             <button onclick="setFilter('Monaguillo')" id="filter-Monaguillo" class="filter-btn px-3 py-1 rounded-full font-medium bg-slate-100 text-slate-600">Monaguillos</button>
+            <button onclick="setFilter('sin-telefono')" id="filter-sin-telefono" class="filter-btn px-3 py-1 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200">⚠️ Sin Teléfono</button>
           </div>
         </div>
 
@@ -99,7 +100,7 @@
         </div>
       </section>
 
-      <!-- PESTAÑA 3: RESUMEN / AFICIONES -->
+      <!-- PESTAÑA 3: RESUMEN & EXPORTACIÓN EXCEL -->
       <section id="tab-stats" class="hidden space-y-3.5">
         <div class="grid grid-cols-2 gap-2.5">
           <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-3 rounded-2xl text-white shadow-sm">
@@ -114,6 +115,23 @@
           </div>
         </div>
 
+        <!-- BOTÓN DESTACADO: EXPORTAR A EXCEL COMPLETO -->
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-2xl p-3.5 shadow-xs space-y-2">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">📊</span>
+            <div>
+              <h4 class="text-xs font-bold text-emerald-950">Exportar a Excel Completo</h4>
+              <p class="text-[11px] text-emerald-800">Genera 3 hojas: Muchachos, Observaciones y Asistencia.</p>
+            </div>
+          </div>
+          <button onclick="exportToExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow-md transition flex items-center justify-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span>Descargar Libro Excel (.xls)</span>
+          </button>
+        </div>
+
         <!-- Aficiones más comunes -->
         <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
           <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
@@ -125,16 +143,15 @@
           </div>
         </div>
 
-        <!-- Copia y Respaldo -->
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
-          <h4 class="text-xs font-bold text-slate-700">Copias y Respaldo</h4>
-          <p class="text-xs text-slate-500">Puedes guardar una copia de seguridad de los muchachos, aficiones, observaciones y asistencias.</p>
-          <div class="flex space-x-2 pt-1">
-            <button onclick="exportData()" class="flex-1 bg-white border border-slate-300 py-1.5 px-3 rounded-xl text-xs font-semibold text-slate-700 shadow-sm active:bg-slate-100 flex items-center justify-center space-x-1">
-              <span>Descargar Copia</span>
-            </button>
-            <button onclick="resetDemoData()" class="text-xs text-rose-600 px-2 py-1 hover:underline">Reiniciar demo</button>
+        <!-- Copia JSON y Respaldo -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-700">Respaldo técnico</span>
+            <button onclick="resetDemoData()" class="text-xs text-rose-600 hover:underline">Reiniciar demo</button>
           </div>
+          <button onclick="exportData()" class="w-full bg-white border border-slate-300 py-1.5 px-3 rounded-xl text-xs font-semibold text-slate-700 shadow-xs active:bg-slate-100">
+            Descargar Copia de Seguridad JSON
+          </button>
         </div>
       </section>
 
@@ -160,7 +177,7 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
-        <span class="text-[10px] font-medium mt-0.5">Resumen</span>
+        <span class="text-[10px] font-medium mt-0.5">Resumen & Excel</span>
       </button>
     </nav>
 
@@ -213,13 +230,17 @@
             </div>
           </div>
 
-          <!-- Teléfono -->
+          <!-- Teléfono (Opcional - Alerta si no se introduce) -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Teléfono (Contacto/Padres) *</label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Teléfono (Contacto/Padres)</label>
+              <span class="text-[11px] text-slate-400 font-normal">Opcional</span>
+            </div>
             <div class="relative">
-              <input type="tel" id="boyPhone" required placeholder="Ej: 612345678" class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+              <input type="tel" id="boyPhone" placeholder="Opcional: ej: 612345678" class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
               <span class="absolute left-3 top-2.5 text-slate-400">📞</span>
             </div>
+            <p class="text-[10px] text-amber-700 mt-1">💡 Si se deja vacío, aparecerá una alerta destacada en la lista.</p>
           </div>
 
           <!-- Aficiones con posibilidad de añadir nuevas -->
@@ -308,10 +329,9 @@
       "Teatro", "Natación", "Ciclismo", "Cocina", "Manualidades"
     ];
 
-    // CARGAR O INICIALIZAR AFICIONES DISPONIBLES
     let availableHobbies = JSON.parse(localStorage.getItem("catequesis_hobbies")) || DEFAULT_HOBBIES;
 
-    // DATOS DE EJEMPLO CON OBSERVACIONES VINCULADAS
+    // DATOS DE EJEMPLO (Incluye muchachos sin teléfono para probar la alerta visual)
     const INITIAL_BOYS = [
       {
         id: "1",
@@ -332,7 +352,7 @@
         role: "Monaguillo",
         age: 11,
         siblings: 1,
-        phone: "+34622334455",
+        phone: "", // SIN TELÉFONO para mostrar alerta
         hobbies: ["Pintar / Dibujar", "Lectura", "Música / Guitarra"],
         observations: [
           { id: "obs-3", date: "2026-10-20", text: "Ha aprendido bien el orden de los vasos sagrados en el altar." }
@@ -354,17 +374,20 @@
         role: "Confirmación",
         age: 15,
         siblings: 0,
-        phone: "+34644556677",
+        phone: "", // SIN TELÉFONO para mostrar alerta
         hobbies: ["Teatro", "Pintar / Dibujar"],
         observations: [
-          { id: "obs-4", date: "2026-11-01", text: "Hablado con su madre por teléfono para coordinar el horario." }
+          { id: "obs-4", date: "2026-11-01", text: "Pendiente pedir teléfono de contacto a su madre en la próxima sesión." }
         ]
       }
     ];
 
-    // ESTADO LOCAL
     let boys = JSON.parse(localStorage.getItem("catequesis_boys")) || INITIAL_BOYS;
-    let attendance = JSON.parse(localStorage.getItem("catequesis_attendance")) || {};
+    let attendance = JSON.parse(localStorage.getItem("catequesis_attendance")) || {
+      "2026-10-15": { "1": true, "2": true, "3": false, "4": true },
+      "2026-10-22": { "1": true, "2": true, "3": true, "4": true },
+      "2026-11-05": { "1": true, "2": false, "3": true, "4": false }
+    };
     let currentFilter = "todos";
     let selectedHobbies = new Set();
     let currentObsBoyId = null;
@@ -378,7 +401,6 @@
       renderAttendance();
       updateStats();
 
-      // Permitir enter al escribir una afición
       document.getElementById("newHobbyInput").addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -416,24 +438,39 @@
     function setFilter(role) {
       currentFilter = role;
       document.querySelectorAll(".filter-btn").forEach(btn => {
-        btn.classList.remove("bg-indigo-600", "text-white");
-        btn.classList.add("bg-slate-100", "text-slate-600");
+        btn.classList.remove("bg-indigo-600", "text-white", "bg-amber-600");
+        if (btn.id === 'filter-sin-telefono') {
+          btn.className = "filter-btn px-3 py-1 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200";
+        } else {
+          btn.className = "filter-btn px-3 py-1 rounded-full font-medium bg-slate-100 text-slate-600";
+        }
       });
-      document.getElementById(`filter-${role}`).classList.add("bg-indigo-600", "text-white");
-      document.getElementById(`filter-${role}`).classList.remove("bg-slate-100", "text-slate-600");
+
+      const activeBtn = document.getElementById(`filter-${role}`);
+      if (role === 'sin-telefono') {
+        activeBtn.className = "filter-btn px-3 py-1 rounded-full font-medium bg-amber-500 text-white shadow-xs";
+      } else {
+        activeBtn.className = "filter-btn px-3 py-1 rounded-full font-medium bg-indigo-600 text-white shadow-xs";
+      }
       renderList();
     }
 
-    // RENDERIZAR LISTA DE MUCHACHOS
+    // RENDERIZAR LISTA DE MUCHACHOS (Con aviso llamativo si no tiene teléfono)
     function renderList() {
       const query = document.getElementById("searchInput").value.toLowerCase().trim();
       const container = document.getElementById("boysList");
       container.innerHTML = "";
 
       const filtered = boys.filter(b => {
-        const matchesFilter = currentFilter === 'todos' || b.role === currentFilter || (b.role === 'Ambos');
+        const hasPhone = b.phone && b.phone.trim().length > 0;
+        
+        let matchesFilter = false;
+        if (currentFilter === 'todos') matchesFilter = true;
+        else if (currentFilter === 'sin-telefono') matchesFilter = !hasPhone;
+        else matchesFilter = b.role === currentFilter || (b.role === 'Ambos');
+
         const matchesHobbies = (b.hobbies || []).some(h => h.toLowerCase().includes(query));
-        const matchesQuery = b.name.toLowerCase().includes(query) || (b.phone && b.phone.includes(query)) || matchesHobbies;
+        const matchesQuery = b.name.toLowerCase().includes(query) || (b.phone && b.phone.includes(query)) || matchesHobbies || (query.includes('telefono') && !hasPhone);
         return matchesFilter && matchesQuery;
       });
 
@@ -448,7 +485,9 @@
       }
 
       filtered.forEach(boy => {
-        const cleanPhone = boy.phone ? boy.phone.replace(/[^0-9+]/g, '') : '';
+        const hasPhone = boy.phone && boy.phone.trim().length > 0;
+        const cleanPhone = hasPhone ? boy.phone.replace(/[^0-9+]/g, '') : '';
+        
         const roleBadgeClass = boy.role === 'Confirmación' 
           ? 'bg-purple-100 text-purple-700' 
           : boy.role === 'Monaguillo' 
@@ -457,8 +496,13 @@
 
         const obsCount = (boy.observations || []).length;
 
+        // Tarjeta con borde rojo/ámbar si falta teléfono
+        const borderClass = !hasPhone 
+          ? 'border-amber-300 bg-amber-50/20 shadow-amber-100' 
+          : 'border-slate-200/80 bg-white';
+
         const card = document.createElement("div");
-        card.className = "bg-white border border-slate-200/80 rounded-2xl p-3 shadow-xs hover:border-indigo-300 transition";
+        card.className = `border rounded-2xl p-3 shadow-xs transition ${borderClass}`;
         card.innerHTML = `
           <div class="flex items-start justify-between">
             <div class="flex-1 cursor-pointer" onclick="openModal('${boy.id}')">
@@ -477,18 +521,28 @@
               </div>
             </div>
 
-            <!-- Botones directos de teléfono y WhatsApp -->
-            <div class="flex flex-col space-y-1 ml-2">
-              <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition" title="Llamar">
-                📞
-              </a>
-              <a href="https://wa.me/${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition" title="Enviar WhatsApp">
-                💬
-              </a>
+            <!-- Columna de contacto: Botones o ALERTA LLAMATIVA -->
+            <div class="ml-2 flex flex-col items-end justify-center">
+              ${hasPhone ? `
+                <div class="flex flex-col space-y-1">
+                  <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition" title="Llamar al ${boy.phone}">
+                    📞
+                  </a>
+                  <a href="https://wa.me/${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition" title="WhatsApp al ${boy.phone}">
+                    💬
+                  </a>
+                </div>
+              ` : `
+                <!-- AVISO LLAMATIVO EN TONO VIBRANTE -->
+                <div onclick="openModal('${boy.id}')" class="cursor-pointer bg-rose-500 text-white text-[10px] font-extrabold px-2 py-1.5 rounded-xl shadow flex flex-col items-center justify-center text-center animate-pulse hover:bg-rose-600 transition" title="Toca para añadir teléfono">
+                  <span class="text-xs">⚠️</span>
+                  <span class="leading-tight">FALTA<br/>TELÉFONO</span>
+                </div>
+              `}
             </div>
           </div>
 
-          <!-- Barra inferior de la tarjeta: Botón de Observaciones y Editar -->
+          <!-- Barra inferior de la tarjeta -->
           <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
             <button onclick="openObservationsModal('${boy.id}')" class="flex items-center space-x-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50/70 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition">
               <span>📝 Observaciones</span>
@@ -501,6 +555,231 @@
         `;
         container.appendChild(card);
       });
+    }
+
+    // EXPORTACIÓN A EXCEL COMPLETO (LIBRO MULTI-HOJA COMPATIBLE CON EXCEL/CALC/SHEETS)
+    function exportToExcel() {
+      const sessionDates = Object.keys(attendance).sort();
+
+      // HOJA 1: MUCHACHOS (Directorio y resumen)
+      let sheet1Rows = "";
+      sheet1Rows += `
+        <Row ss:StyleID="HeaderStyle">
+          <Cell><Data ss:Type="String">Nombre y Apellidos</Data></Cell>
+          <Cell><Data ss:Type="String">Grupo</Data></Cell>
+          <Cell><Data ss:Type="String">Edad</Data></Cell>
+          <Cell><Data ss:Type="String">Nº Hermanos</Data></Cell>
+          <Cell><Data ss:Type="String">Teléfono Contacto</Data></Cell>
+          <Cell><Data ss:Type="String">Aficiones</Data></Cell>
+          <Cell><Data ss:Type="String">Total Observaciones</Data></Cell>
+          <Cell><Data ss:Type="String">Total Asistencias</Data></Cell>
+          <Cell><Data ss:Type="String">% Asistencia</Data></Cell>
+        </Row>
+      `;
+
+      boys.forEach(b => {
+        const hasPhone = b.phone && b.phone.trim().length > 0;
+        const phoneText = hasPhone ? b.phone : "⚠️ FALTA TELÉFONO";
+        const hobbiesText = (b.hobbies || []).join(", ");
+        const obsCount = (b.observations || []).length;
+
+        let presents = 0;
+        sessionDates.forEach(d => {
+          if (attendance[d] && attendance[d][b.id] === true) presents++;
+        });
+        const pct = sessionDates.length > 0 ? Math.round((presents / sessionDates.length) * 100) + "%" : "100%";
+
+        const phoneStyle = hasPhone ? "" : ` ss:StyleID="AlertStyle"`;
+
+        sheet1Rows += `
+          <Row>
+            <Cell><Data ss:Type="String">${escapeXml(b.name)}</Data></Cell>
+            <Cell><Data ss:Type="String">${escapeXml(b.role)}</Data></Cell>
+            <Cell><Data ss:Type="Number">${b.age || 0}</Data></Cell>
+            <Cell><Data ss:Type="Number">${b.siblings || 0}</Data></Cell>
+            <Cell${phoneStyle}><Data ss:Type="String">${escapeXml(phoneText)}</Data></Cell>
+            <Cell><Data ss:Type="String">${escapeXml(hobbiesText)}</Data></Cell>
+            <Cell><Data ss:Type="Number">${obsCount}</Data></Cell>
+            <Cell><Data ss:Type="Number">${presents}</Data></Cell>
+            <Cell><Data ss:Type="String">${pct}</Data></Cell>
+          </Row>
+        `;
+      });
+
+      // HOJA 2: OBSERVACIONES (Historial cronológico)
+      let sheet2Rows = "";
+      sheet2Rows += `
+        <Row ss:StyleID="HeaderStyle">
+          <Cell><Data ss:Type="String">Fecha</Data></Cell>
+          <Cell><Data ss:Type="String">Muchacho</Data></Cell>
+          <Cell><Data ss:Type="String">Grupo</Data></Cell>
+          <Cell><Data ss:Type="String">Observación / Nota de Evolución</Data></Cell>
+        </Row>
+      `;
+
+      const allObs = [];
+      boys.forEach(b => {
+        (b.observations || []).forEach(o => {
+          allObs.push({
+            date: o.date,
+            boyName: b.name,
+            role: b.role,
+            text: o.text
+          });
+        });
+      });
+
+      allObs.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+      if (allObs.length === 0) {
+        sheet2Rows += `
+          <Row>
+            <Cell><Data ss:Type="String">-</Data></Cell>
+            <Cell><Data ss:Type="String">Sin observaciones registradas</Data></Cell>
+            <Cell><Data ss:Type="String">-</Data></Cell>
+            <Cell><Data ss:Type="String">-</Data></Cell>
+          </Row>
+        `;
+      } else {
+        allObs.forEach(o => {
+          sheet2Rows += `
+            <Row>
+              <Cell><Data ss:Type="String">${escapeXml(o.date)}</Data></Cell>
+              <Cell><Data ss:Type="String">${escapeXml(o.boyName)}</Data></Cell>
+              <Cell><Data ss:Type="String">${escapeXml(o.role)}</Data></Cell>
+              <Cell><Data ss:Type="String">${escapeXml(o.text)}</Data></Cell>
+            </Row>
+          `;
+        });
+      }
+
+      // HOJA 3: MATRIZ DE ASISTENCIA
+      let sheet3Rows = "";
+      let headerCells = `
+        <Cell><Data ss:Type="String">Muchacho</Data></Cell>
+        <Cell><Data ss:Type="String">Grupo</Data></Cell>
+      `;
+
+      sessionDates.forEach(d => {
+        headerCells += `<Cell><Data ss:Type="String">${d}</Data></Cell>`;
+      });
+      headerCells += `
+        <Cell><Data ss:Type="String">Total Presentes</Data></Cell>
+        <Cell><Data ss:Type="String">% Asistencia</Data></Cell>
+      `;
+
+      sheet3Rows += `<Row ss:StyleID="HeaderStyle">${headerCells}</Row>`;
+
+      boys.forEach(b => {
+        let presents = 0;
+        let rowCells = `
+          <Cell><Data ss:Type="String">${escapeXml(b.name)}</Data></Cell>
+          <Cell><Data ss:Type="String">${escapeXml(b.role)}</Data></Cell>
+        `;
+
+        sessionDates.forEach(d => {
+          const isPresent = attendance[d] && attendance[d][b.id] === true;
+          const wasMarked = attendance[d] && attendance[d][b.id] !== undefined;
+          if (isPresent) presents++;
+
+          const val = isPresent ? "Presente" : (wasMarked ? "Falta" : "-");
+          const style = isPresent ? ` ss:StyleID="PresentStyle"` : (wasMarked ? ` ss:StyleID="AbsentStyle"` : "");
+          rowCells += `<Cell${style}><Data ss:Type="String">${val}</Data></Cell>`;
+        });
+
+        const pct = sessionDates.length > 0 ? Math.round((presents / sessionDates.length) * 100) + "%" : "100%";
+        rowCells += `
+          <Cell><Data ss:Type="Number">${presents}</Data></Cell>
+          <Cell><Data ss:Type="String">${pct}</Data></Cell>
+        `;
+
+        sheet3Rows += `<Row>${rowCells}</Row>`;
+      });
+
+      // LIBRO XML CON ESTILOS PARA EXCEL (SpreadsheetML)
+      const excelXml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#1E293B"/>
+  </Style>
+  <Style ss:ID="HeaderStyle">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#4338CA"/>
+   </Borders>
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#4F46E5" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="AlertStyle">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#991B1B"/>
+   <Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="PresentStyle">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#065F46"/>
+   <Interior ss:Color="#D1FAE5" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="AbsentStyle">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#991B1B"/>
+   <Interior ss:Color="#FFE4E6" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="1. Muchachos">
+  <Table>
+   <Column ss:Width="160"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="50"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="75"/>
+   ${sheet1Rows}
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="2. Observaciones">
+  <Table>
+   <Column ss:Width="80"/>
+   <Column ss:Width="150"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="280"/>
+   ${sheet2Rows}
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="3. Matriz Asistencia">
+  <Table>
+   <Column ss:Width="160"/>
+   <Column ss:Width="90"/>
+   ${sessionDates.map(() => '<Column ss:Width="85"/>').join('')}
+   <Column ss:Width="90"/>
+   <Column ss:Width="75"/>
+   ${sheet3Rows}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+      const blob = new Blob([excelXml], { type: "application/vnd.ms-excel;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `catequesis_parroquia_${today}.xls`;
+      a.click();
+    }
+
+    function escapeXml(unsafe) {
+      if (!unsafe) return "";
+      return unsafe.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
     }
 
     // GESTIÓN DE AFICIONES DINÁMICAS
@@ -548,7 +827,7 @@
       });
     }
 
-    // GESTIÓN DE OBSERVACIONES VINCULADAS
+    // OBSERVACIONES
     function openObservationsModal(boyId) {
       currentObsBoyId = boyId;
       const boy = boys.find(b => b.id === boyId);
@@ -634,7 +913,7 @@
       }
     }
 
-    // MODAL DE REGISTRO / EDICIÓN BÁSICA
+    // FORMULARIO PRINCIPAL
     function openModal(boyId = null) {
       selectedHobbies.clear();
       document.getElementById("boyForm").reset();
@@ -777,7 +1056,7 @@
       renderAttendance();
     }
 
-    // ESTADÍSTICAS Y DINÁMICAS
+    // ESTADÍSTICAS
     function updateStats() {
       const total = boys.length;
       document.getElementById("statTotal").innerText = total;
@@ -824,7 +1103,6 @@
       }
     }
 
-    // EXPORTACIÓN Y DEMO
     function exportData() {
       const payload = {
         fechaExportacion: new Date().toISOString(),
@@ -843,7 +1121,11 @@
     function resetDemoData() {
       if (confirm("¿Restablecer datos de ejemplo? Se sobrescribirá lo actual.")) {
         boys = INITIAL_BOYS;
-        attendance = {};
+        attendance = {
+          "2026-10-15": { "1": true, "2": true, "3": false, "4": true },
+          "2026-10-22": { "1": true, "2": true, "3": true, "4": true },
+          "2026-11-05": { "1": true, "2": false, "3": true, "4": false }
+        };
         availableHobbies = DEFAULT_HOBBIES;
         saveState();
         renderList();

@@ -2,38 +2,34 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#4f46e5" />
   <title>Catequesis & Monaguillos</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SheetJS para soporte de lectura y escritura Excel universal (.xlsx / .xls) -->
+  <!-- SheetJS: lectura y escritura de Excel (.xlsx / .xls) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     body {
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
-    input, textarea, select {
-      user-select: auto;
-    }
-    .custom-scroll::-webkit-scrollbar {
-      display: none;
-    }
+    button, nav { user-select: none; }
+    .custom-scroll::-webkit-scrollbar { display: none; }
+    .custom-scroll { scrollbar-width: none; }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
 
-  <!-- CONTENEDOR PRINCIPAL SMARTPHONE -->
   <div class="max-w-md mx-auto w-full min-h-screen bg-white shadow-xl flex flex-col relative pb-20">
-    
+
     <!-- HEADER -->
     <header class="bg-indigo-600 text-white px-4 py-3.5 sticky top-0 z-30 shadow-md">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2">
-          <div class="w-8 h-8 rounded-lg bg-indigo-500/80 flex items-center justify-center font-bold text-white text-lg shadow-inner">
-            ✝
-          </div>
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/80 flex items-center justify-center font-bold text-white text-lg shadow-inner">✝</div>
           <div>
             <h1 class="text-base font-bold leading-tight">Parroquia - Jóvenes</h1>
             <p class="text-xs text-indigo-200">Confirmación & Monaguillos</p>
@@ -46,1328 +42,1915 @@
       </div>
     </header>
 
-    <!-- NOTIFICACIÓN TOAST FLOTANTE -->
-    <div id="toastMessage" class="hidden fixed top-16 left-1/2 -translate-x-1/2 max-w-xs w-full bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-xl z-50 text-center transition-all animate-bounce">
+    <!-- TOAST -->
+    <div id="toastMessage" class="hidden fixed top-16 left-1/2 -translate-x-1/2 max-w-xs w-[90%] bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-xl z-[60] text-center">
       <span id="toastText">Datos actualizados</span>
     </div>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1 p-3.5 overflow-y-auto">
+    <main class="flex-1 p-3.5">
 
-      <!-- PESTAÑA 1: LISTADO DE MUCHACHOS -->
+      <!-- ===================== PESTAÑA 1: MUCHACHOS ===================== -->
       <section id="tab-boys" class="space-y-3">
-        <!-- Buscador y Filtros -->
+        <div id="backupBanner"></div>
+
         <div class="space-y-2">
           <div class="relative">
-            <input type="text" id="searchInput" oninput="renderList()" placeholder="Buscar por nombre, afición o 'sin teléfono'..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input type="search" id="searchInput" oninput="renderList()" placeholder="Buscar por nombre, tutor, teléfono o afición..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
           </div>
-
-          <!-- Filtro de Grupo -->
-          <div class="flex space-x-1.5 overflow-x-auto pb-1 text-xs custom-scroll">
-            <button onclick="setFilter('todos')" id="filter-todos" class="filter-btn px-3 py-1 rounded-full font-medium bg-indigo-600 text-white">Todos</button>
-            <button onclick="setFilter('Confirmación')" id="filter-Confirmación" class="filter-btn px-3 py-1 rounded-full font-medium bg-slate-100 text-slate-600">Confirmación</button>
-            <button onclick="setFilter('Monaguillo')" id="filter-Monaguillo" class="filter-btn px-3 py-1 rounded-full font-medium bg-slate-100 text-slate-600">Monaguillos</button>
-            <button onclick="setFilter('sin-telefono')" id="filter-sin-telefono" class="filter-btn px-3 py-1 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200">⚠️ Sin Teléfono</button>
-          </div>
+          <div id="listFilters" class="flex space-x-1.5 overflow-x-auto pb-1 text-xs custom-scroll"></div>
+          <div id="hobbyFilterChip"></div>
         </div>
 
-        <!-- Lista de muchachos -->
-        <div id="boysList" class="space-y-2.5">
-          <!-- Renderizado dinámico -->
-        </div>
+        <div id="boysList" class="space-y-2.5"></div>
       </section>
 
-      <!-- PESTAÑA 2: ASISTENCIA RÁPIDA -->
+      <!-- ===================== PESTAÑA 2: ASISTENCIA ===================== -->
       <section id="tab-attendance" class="hidden space-y-3">
-        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3">
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-xs font-bold text-indigo-900">Fecha de la Sesión:</label>
+        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <label for="attendanceDate" class="text-xs font-bold text-indigo-900">Fecha de la sesión</label>
             <input type="date" id="attendanceDate" onchange="renderAttendance()" class="text-xs bg-white border border-indigo-200 rounded-lg px-2 py-1 font-semibold text-slate-700 focus:outline-none" />
           </div>
-          <div class="flex justify-between items-center text-xs text-indigo-800">
-            <span>Presentes: <b id="presentCount" class="text-emerald-700">0</b> / <span id="totalStudents">0</span></span>
+          <div class="flex items-center justify-between gap-2">
+            <label for="sessionSelect" class="text-[11px] text-indigo-800">Sesiones anteriores</label>
+            <select id="sessionSelect" onchange="pickSession(this.value)" class="text-xs bg-white border border-indigo-200 rounded-lg px-2 py-1 text-slate-700 focus:outline-none max-w-[55%]"></select>
+          </div>
+          <div id="attFilters" class="flex space-x-1.5 text-xs pt-1"></div>
+          <div class="flex justify-between items-center text-xs text-indigo-800 pt-1">
+            <span>Presentes: <b id="presentCount" class="text-emerald-700">0</b> / <span id="totalStudents">0</span>
+              · Faltas: <b id="absentCount" class="text-rose-700">0</b>
+              · Sin marcar: <b id="unmarkedCount">0</b></span>
             <span id="rateLabel" class="bg-indigo-200/80 px-2 py-0.5 rounded-full font-semibold">0%</span>
           </div>
-          <div class="w-full bg-indigo-200 h-1.5 rounded-full mt-2 overflow-hidden">
+          <div class="w-full bg-indigo-200 h-1.5 rounded-full overflow-hidden">
             <div id="attendanceProgressBar" class="bg-emerald-500 h-1.5 transition-all duration-300" style="width: 0%"></div>
           </div>
         </div>
 
         <div class="flex justify-between items-center px-1">
-          <p class="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Pasar Lista con 1 toque</p>
-          <button onclick="markAllPresent()" class="text-xs text-indigo-600 font-medium hover:underline">Todos Presentes</button>
+          <p class="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Pasar lista con 1 toque</p>
+          <div class="space-x-3">
+            <button onclick="clearVisibleAttendance()" class="text-xs text-slate-500 font-medium hover:underline">Limpiar</button>
+            <button onclick="markAllPresent()" class="text-xs text-indigo-600 font-semibold hover:underline">Todos presentes</button>
+          </div>
         </div>
+        <p class="text-[10px] text-slate-400 px-1 -mt-2">Vuelve a tocar un botón marcado para dejarlo sin marcar.</p>
 
-        <div id="attendanceList" class="space-y-2">
-          <!-- Renderizado dinámico de asistencia -->
-        </div>
+        <div id="attendanceList" class="space-y-2"></div>
       </section>
 
-      <!-- PESTAÑA 3: RESUMEN & EXCEL (BIDIRECCIONAL) -->
+      <!-- ===================== PESTAÑA 3: RESUMEN & EXCEL ===================== -->
       <section id="tab-stats" class="hidden space-y-3.5">
         <div class="grid grid-cols-2 gap-2.5">
           <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-3 rounded-2xl text-white shadow-sm">
-            <p class="text-xs text-indigo-100 font-medium">Inscritos Totales</p>
+            <p class="text-xs text-indigo-100 font-medium">Inscritos</p>
             <p class="text-2xl font-bold mt-1" id="statTotal">0</p>
             <p class="text-[11px] text-indigo-200 mt-0.5" id="statSubgroups">0 Conf. · 0 Mon.</p>
           </div>
           <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-2xl text-white shadow-sm">
-            <p class="text-xs text-emerald-100 font-medium">Media Asistencia</p>
-            <p class="text-2xl font-bold mt-1" id="statAvgAttendance">0%</p>
-            <p class="text-[11px] text-emerald-100 mt-0.5">En las sesiones</p>
+            <p class="text-xs text-emerald-100 font-medium">Asistencia media</p>
+            <p class="text-2xl font-bold mt-1" id="statAvgAttendance">–</p>
+            <p class="text-[11px] text-emerald-100 mt-0.5" id="statSessions">0 sesiones</p>
+          </div>
+          <button onclick="goToNoPhone()" class="text-left bg-amber-50 border border-amber-200 p-3 rounded-2xl shadow-sm active:scale-95 transition">
+            <p class="text-xs text-amber-800 font-medium">⚠️ Sin teléfono</p>
+            <p class="text-2xl font-bold mt-1 text-amber-700" id="statNoPhone">0</p>
+            <p class="text-[11px] text-amber-700 mt-0.5">Toca para verlos</p>
+          </button>
+          <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl shadow-sm">
+            <p class="text-xs text-slate-600 font-medium">📝 Observaciones</p>
+            <p class="text-2xl font-bold mt-1 text-slate-700" id="statObs">0</p>
+            <p class="text-[11px] text-slate-500 mt-0.5" id="statObsLast">–</p>
           </div>
         </div>
 
-        <!-- MÓDULO EXCEL BIDIRECCIONAL -->
+        <!-- Seguimiento de asistencia -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Seguimiento de asistencia</h3>
+          <p class="text-[10px] text-slate-500 mb-2">Muchachos con 2 o más faltas seguidas en sus últimas sesiones, o con menos del 50 % de asistencia (mínimo 3 sesiones).</p>
+          <div id="attendanceAlerts" class="space-y-1.5"></div>
+        </div>
+
+        <!-- Aficiones -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span>Aficiones registradas</span>
+            <button id="btnManageHobbies" onclick="toggleManageHobbies()" class="text-[11px] text-indigo-600 font-semibold normal-case tracking-normal hover:underline">Gestionar</button>
+          </h3>
+          <p id="hobbiesHint" class="text-[10px] text-slate-500 mb-2">Toca una afición para ver quién la tiene (útil para preparar dinámicas).</p>
+          <div id="hobbiesCloud" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- Excel -->
         <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border-2 border-emerald-300 rounded-2xl p-3.5 shadow-sm space-y-3">
           <div class="flex items-center space-x-2">
             <span class="text-2xl">📊</span>
             <div>
-              <h4 class="text-xs font-bold text-slate-800">Sincronización con Excel</h4>
-              <p class="text-[11px] text-slate-600">Exporta a Excel, edita en PC y vuelve a cargar los cambios.</p>
+              <h4 class="text-xs font-bold text-slate-800">Excel</h4>
+              <p class="text-[11px] text-slate-600">Exporta todo a Excel, edítalo en el ordenador y vuelve a cargarlo.</p>
             </div>
           </div>
-
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <!-- 1. EXPORTAR -->
-            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold py-2 px-2 rounded-xl text-xs shadow-xs transition flex flex-col items-center justify-center text-center space-y-1">
-              <span class="text-sm">⬇️</span>
-              <span>Exportar Excel</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold py-2 px-2 rounded-xl text-xs shadow-sm transition flex flex-col items-center justify-center space-y-1">
+              <span class="text-sm">⬇️</span><span>Exportar Excel</span>
             </button>
-
-            <!-- 2. IMPORTAR -->
-            <label class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold py-2 px-2 rounded-xl text-xs shadow-xs transition flex flex-col items-center justify-center text-center space-y-1 cursor-pointer">
-              <span class="text-sm">⬆️</span>
-              <span>Cargar Excel</span>
-              <input type="file" id="excelFileInput" accept=".xls,.xlsx,.xml" onchange="handleExcelImport(event)" class="hidden" />
+            <label class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold py-2 px-2 rounded-xl text-xs shadow-sm transition flex flex-col items-center justify-center space-y-1 cursor-pointer">
+              <span class="text-sm">⬆️</span><span>Cargar Excel</span>
+              <input type="file" id="excelFileInput" accept=".xlsx,.xls,.xml,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onchange="handleExcelImport(event)" class="hidden" />
             </label>
           </div>
-
-          <p class="text-[10px] text-slate-500 leading-tight">
-            💡 Puedes modificar nombres, teléfonos, observaciones o asistencias en el Excel y al subirlo se actualizará toda la app.
+          <p id="lastExcelSave" class="text-[10px] text-emerald-900 bg-white/70 border border-emerald-200 rounded-lg px-2 py-1 leading-snug"></p>
+          <p class="text-[10px] text-slate-500 leading-snug">
+            💡 El Excel lleva todas las fichas, las observaciones y la asistencia. Puedes corregir datos, añadir filas o pasar lista en él.
+            Al cargarlo verás un resumen de los cambios antes de aplicarlos. <b>No modifiques la columna ID.</b>
           </p>
         </div>
 
-        <!-- Aficiones más comunes -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
-          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
-            <span>Aficiones registradas</span>
-            <span class="text-[11px] text-indigo-600 font-normal">Para dinámicas</span>
-          </h3>
-          <div id="hobbiesCloud" class="flex flex-wrap gap-1.5 pt-1">
-            <!-- Píldoras -->
-          </div>
-        </div>
-
-        <!-- Respaldo técnico JSON -->
+        <!-- Copia de seguridad -->
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-slate-700">Respaldo técnico JSON</span>
-            <button onclick="resetDemoData()" class="text-xs text-rose-600 hover:underline">Reiniciar demo</button>
+            <span class="text-xs font-bold text-slate-700">💾 Copia de seguridad</span>
+            <span id="lastBackupLabel" class="text-[10px] text-slate-500">Nunca</span>
           </div>
-          <button onclick="exportData()" class="w-full bg-white border border-slate-300 py-1.5 px-3 rounded-xl text-xs font-semibold text-slate-700 shadow-xs active:bg-slate-100">
-            Descargar Copia de Seguridad JSON
-          </button>
+          <p class="text-[10px] text-slate-500 leading-snug">Los datos se guardan solo en este navegador. Si se borra el historial del navegador o cambias de móvil, se pierden: haz una copia de vez en cuando (el Excel también sirve como copia).</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="exportData()" class="bg-white border border-slate-300 py-1.5 px-2 rounded-xl text-xs font-semibold text-slate-700 shadow-sm active:bg-slate-100">Descargar copia</button>
+            <label class="bg-white border border-slate-300 py-1.5 px-2 rounded-xl text-xs font-semibold text-slate-700 shadow-sm active:bg-slate-100 text-center cursor-pointer">
+              Restaurar copia
+              <input type="file" id="jsonFileInput" accept=".json,application/json" onchange="handleJsonRestore(event)" class="hidden" />
+            </label>
+          </div>
+          <p id="lastJsonSave" class="text-[10px] text-slate-600 bg-white border border-slate-200 rounded-lg px-2 py-1 leading-snug"></p>
+          <div id="undoBox"></div>
         </div>
-      </section>
 
+        <!-- Zona avanzada -->
+        <details class="bg-white border border-rose-200 rounded-2xl p-3">
+          <summary class="text-xs font-bold text-rose-700 cursor-pointer flex justify-between items-center">
+            <span>⚙️ Zona avanzada</span><span class="text-[10px] text-rose-400 font-normal">mostrar</span>
+          </summary>
+          <div class="pt-3 space-y-2">
+            <button onclick="loadDemoData()" class="w-full bg-white border border-slate-300 py-1.5 px-3 rounded-xl text-xs font-semibold text-slate-700">Cargar datos de ejemplo</button>
+            <button onclick="deleteAllData()" class="w-full bg-rose-600 text-white py-1.5 px-3 rounded-xl text-xs font-semibold">Borrar todos los datos</button>
+            <p class="text-[10px] text-slate-500">Ambas opciones sustituyen los datos actuales. Se guarda una copia para poder deshacer.</p>
+          </div>
+        </details>
+      </section>
     </main>
 
-    <!-- NAVEGACIÓN INFERIOR SMARTPHONE -->
-    <nav class="fixed bottom-0 max-w-md w-full bg-white/95 backdrop-blur-md border-t border-slate-200 py-1.5 px-6 flex justify-around items-center z-40">
+    <!-- NAVEGACIÓN INFERIOR -->
+    <nav class="fixed bottom-0 max-w-md w-full bg-white/95 backdrop-blur-md border-t border-slate-200 py-1.5 px-6 flex justify-around items-center z-40" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
       <button onclick="switchTab('boys')" id="nav-boys" class="nav-btn flex flex-col items-center text-indigo-600 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-        </svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         <span class="text-[10px] font-bold mt-0.5">Muchachos</span>
       </button>
-
-      <button onclick="switchTab('attendance')" id="nav-attendance" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-        </svg>
+      <button onclick="switchTab('attendance')" id="nav-attendance" class="nav-btn flex flex-col items-center text-slate-400 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
         <span class="text-[10px] font-medium mt-0.5">Asistencia</span>
       </button>
-
-      <button onclick="switchTab('stats')" id="nav-stats" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-        </svg>
+      <button onclick="switchTab('stats')" id="nav-stats" class="nav-btn flex flex-col items-center text-slate-400 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         <span class="text-[10px] font-medium mt-0.5">Resumen & Excel</span>
       </button>
     </nav>
 
-    <!-- FICHA DEL MUCHACHO (INTEGRA DATOS BÁSICOS + REGISTROS/OBSERVACIONES EN LA PROPIA FICHA) -->
+    <!-- ===================== FICHA DEL MUCHACHO ===================== -->
     <div id="modalForm" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[94vh] flex flex-col overflow-hidden">
-        
-        <!-- Header de la Ficha -->
-        <div class="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+        <div class="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <div>
             <h3 id="modalTitle" class="text-sm font-bold text-slate-800">Ficha del Muchacho</h3>
-            <p id="modalSubtitle" class="text-[11px] text-slate-500">Datos y seguimiento continuo</p>
+            <p id="modalSubtitle" class="text-[11px] text-slate-500">Datos y seguimiento</p>
           </div>
-          <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">&times;</button>
+          <button type="button" onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm" aria-label="Cerrar">&times;</button>
         </div>
 
         <form id="boyForm" onsubmit="saveBoy(event)" class="p-5 overflow-y-auto space-y-4 text-xs flex-1">
           <input type="hidden" id="boyId" />
 
-          <!-- SECCIÓN 1: DATOS PERSONALES -->
           <div class="space-y-3">
             <div>
-              <label class="block font-semibold text-slate-700 mb-1">Nombre y Apellidos *</label>
+              <label for="boyName" class="block font-semibold text-slate-700 mb-1">Nombre y apellidos *</label>
               <input type="text" id="boyName" required placeholder="Ej: Lucas Morales Ruiz" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
             </div>
 
-            <!-- Grupo / Rol -->
             <div>
-              <label class="block font-semibold text-slate-700 mb-1">Grupo / Rol *</label>
+              <span class="block font-semibold text-slate-700 mb-1">Grupo / Rol *</span>
               <div class="grid grid-cols-3 gap-1.5">
                 <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
-                  <input type="radio" name="boyRole" value="Confirmación" checked class="hidden" />
-                  <span>Confirmación</span>
+                  <input type="radio" name="boyRole" value="Confirmación" checked class="hidden" /><span>Confirmación</span>
                 </label>
                 <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
-                  <input type="radio" name="boyRole" value="Monaguillo" class="hidden" />
-                  <span>Monaguillo</span>
+                  <input type="radio" name="boyRole" value="Monaguillo" class="hidden" /><span>Monaguillo</span>
                 </label>
                 <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
-                  <input type="radio" name="boyRole" value="Ambos" class="hidden" />
-                  <span>Ambos</span>
+                  <input type="radio" name="boyRole" value="Ambos" class="hidden" /><span>Ambos</span>
                 </label>
               </div>
             </div>
 
-            <!-- Edad y Hermanos -->
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Edad (años)</label>
-                <input type="number" id="boyAge" min="7" max="25" placeholder="14" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+                <label for="boyAge" class="block font-semibold text-slate-700 mb-1">Edad (años)</label>
+                <input type="number" inputmode="numeric" id="boyAge" min="0" max="99" placeholder="14" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
               </div>
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Nº de Hermanos</label>
-                <input type="number" id="boySiblings" min="0" max="15" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+                <label for="boySiblings" class="block font-semibold text-slate-700 mb-1">Nº de hermanos</label>
+                <input type="number" inputmode="numeric" id="boySiblings" min="0" max="20" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
               </div>
             </div>
 
-            <!-- Teléfono (Opcional) -->
+            <!-- Contacto: teléfono + tutor -->
             <div>
               <div class="flex justify-between items-center mb-1">
-                <label class="font-semibold text-slate-700">Teléfono (Contacto/Padres)</label>
+                <span class="font-semibold text-slate-700">Contacto</span>
                 <span class="text-[11px] text-slate-400 font-normal">Opcional</span>
               </div>
-              <div class="relative">
-                <input type="tel" id="boyPhone" placeholder="Opcional: ej: 612345678" class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-                <span class="absolute left-3 top-2.5 text-slate-400">📞</span>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="relative">
+                  <input type="tel" id="boyPhone" placeholder="Teléfono" aria-label="Teléfono" class="w-full pl-8 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+                  <span class="absolute left-2.5 top-2 text-slate-400">📞</span>
+                </div>
+                <div class="relative">
+                  <input type="text" id="boyTutor" placeholder="Nombre del tutor" aria-label="Nombre del tutor" class="w-full pl-8 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+                  <span class="absolute left-2.5 top-2 text-slate-400">👤</span>
+                </div>
               </div>
-              <p class="text-[10px] text-amber-700 mt-1">💡 Si se deja vacío, la tarjeta mostrará la alerta "FALTA TELÉFONO".</p>
+              <p class="text-[10px] text-slate-500 mt-1">Ej.: 612 345 678 · «María (madre)». Sin teléfono, la tarjeta mostrará «FALTA TELÉFONO».</p>
             </div>
 
-            <!-- Aficiones -->
-            <div class="space-y-1.5">
-              <label class="block font-semibold text-slate-700">Aficiones (toca para seleccionar)</label>
-              <div id="hobbiesSelector" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pt-1">
-                <!-- Renderizado interactivo -->
+            <!-- Aficiones: desplegable con casillas -->
+            <div id="hobbyPicker">
+              <span class="block font-semibold text-slate-700 mb-1">Aficiones</span>
+              <button type="button" id="hobbyToggle" onclick="toggleHobbyPanel()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <span id="hobbySummary" class="text-slate-500">Seleccionar aficiones</span>
+                <span id="hobbyCaret" class="text-slate-400">▾</span>
+              </button>
+              <div id="hobbyPanel" class="hidden mt-1.5 bg-white border border-indigo-200 rounded-xl shadow-lg p-2 space-y-1.5">
+                <input type="text" id="hobbySearch" placeholder="Buscar o escribir una afición nueva..." autocomplete="off" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <div id="hobbyOptions" class="max-h-48 overflow-y-auto"></div>
+                <div id="hobbyAddWrap"></div>
+                <button type="button" onclick="closeHobbyPanel()" class="w-full py-1.5 rounded-lg bg-indigo-600 text-white font-semibold">Hecho</button>
               </div>
-              <div class="flex items-center space-x-1.5 pt-1">
-                <input type="text" id="newHobbyInput" placeholder="Añadir otra afición (ej: Ajedrez...)" class="flex-1 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <button type="button" onclick="addNewHobby()" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-semibold rounded-xl border border-indigo-200 hover:bg-indigo-100 transition whitespace-nowrap">
-                  + Añadir
-                </button>
-              </div>
+              <div id="hobbyChips" class="flex flex-wrap gap-1 mt-1.5"></div>
             </div>
           </div>
 
-          <!-- SECCIÓN 2: REGISTROS Y OBSERVACIONES ASOCIADAS -->
+          <!-- Observaciones -->
           <div id="fichaObservationsSection" class="pt-4 border-t-2 border-indigo-100 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
                 <span class="text-sm">📝</span>
-                <span class="font-bold text-slate-800 text-xs">Registros y Observaciones Asociadas</span>
+                <span class="font-bold text-slate-800 text-xs">Observaciones</span>
               </div>
               <span id="fichaObsCount" class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
             </div>
 
-            <!-- Añadir nueva nota -->
             <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-3 space-y-2">
               <div class="flex justify-between items-center">
-                <span class="text-[11px] font-bold text-indigo-950">Añadir registro a este muchacho:</span>
+                <span class="text-[11px] font-bold text-indigo-950">Nueva observación</span>
                 <input type="date" id="inFichaDate" class="text-xs bg-white border border-indigo-200 rounded-lg px-2 py-0.5 text-slate-700 focus:outline-none" />
               </div>
-              <textarea id="inFichaText" rows="2" placeholder="Escribe aquí la observación (ej: avance en el temario, llamada con padres, turno misa monaguillos, actitud...)" class="w-full text-xs p-2.5 bg-white border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-              <div class="flex justify-end">
-                <button type="button" onclick="addObsFromFicha()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition flex items-center space-x-1">
-                  <span>+ Anotar Registro</span>
-                </button>
+              <textarea id="inFichaText" rows="2" placeholder="Ej: avance en el temario, llamada con los padres, turno de misa, actitud..." class="w-full text-xs p-2.5 bg-white border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+              <div class="flex justify-between items-center">
+                <span id="obsSaveHint" class="text-[10px] text-indigo-700"></span>
+                <button type="button" id="btnAddObs" onclick="addObsFromFicha()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold text-xs px-3.5 py-1.5 rounded-xl shadow-sm transition">+ Añadir</button>
               </div>
             </div>
 
-            <!-- Historial -->
-            <div id="inFichaObsList" class="space-y-1.5 max-h-44 overflow-y-auto pt-1">
-              <!-- Renderizado de notas -->
-            </div>
+            <div id="inFichaObsList" class="space-y-1.5"></div>
           </div>
 
-          <!-- BOTONES DE ACCIÓN -->
           <div class="pt-3 border-t border-slate-100 flex items-center justify-between sticky bottom-0 bg-white py-2">
-            <button type="button" id="btnDelete" onclick="deleteCurrentBoy()" class="text-rose-600 font-semibold px-2 py-1 rounded hover:bg-rose-50 hidden">
-              Eliminar Muchacho
-            </button>
+            <button type="button" id="btnDelete" onclick="deleteCurrentBoy()" class="text-rose-600 font-semibold px-2 py-1 rounded hover:bg-rose-50 hidden">Eliminar</button>
             <div class="flex space-x-2 ml-auto">
               <button type="button" onclick="closeModal()" class="px-3.5 py-2 rounded-xl text-slate-600 bg-slate-100 font-medium">Cancelar</button>
-              <button type="submit" class="px-5 py-2 rounded-xl text-white bg-indigo-600 font-semibold shadow hover:bg-indigo-700">Guardar Ficha</button>
+              <button type="submit" class="px-5 py-2 rounded-xl text-white bg-indigo-600 font-semibold shadow hover:bg-indigo-700">Guardar ficha</button>
             </div>
           </div>
         </form>
+      </div>
+    </div>
 
+    <!-- ===================== VISTA PREVIA DE IMPORTACIÓN ===================== -->
+    <div id="importModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[94vh] flex flex-col overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50">
+          <h3 class="text-sm font-bold text-slate-800">Revisar cambios del Excel</h3>
+          <p id="importFileName" class="text-[11px] text-slate-500"></p>
+        </div>
+        <div id="importBody" class="p-5 overflow-y-auto text-xs space-y-3 flex-1"></div>
+        <div class="px-5 py-3 border-t border-slate-100 flex justify-end space-x-2">
+          <button type="button" onclick="closeImportModal()" class="px-3.5 py-2 rounded-xl text-slate-600 bg-slate-100 font-medium text-xs">Cancelar</button>
+          <button type="button" id="btnApplyImport" onclick="applyImport()" class="px-5 py-2 rounded-xl text-white bg-indigo-600 font-semibold shadow text-xs">Aplicar cambios</button>
+        </div>
       </div>
     </div>
 
   </div>
 
   <script>
-    const DEFAULT_HOBBIES = [
-      "Fútbol", "Pintar / Dibujar", "Música / Guitarra", 
-      "Videojuegos", "Baloncesto", "Lectura", 
-      "Teatro", "Natación", "Ciclismo", "Cocina", "Manualidades"
-    ];
-
-    let availableHobbies = JSON.parse(localStorage.getItem("catequesis_hobbies")) || DEFAULT_HOBBIES;
-
-    const INITIAL_BOYS = [
-      {
-        id: "1",
-        name: "Mateo Fernández Gómez",
-        role: "Confirmación",
-        age: 14,
-        siblings: 2,
-        phone: "+34611223344",
-        hobbies: ["Fútbol", "Videojuegos"],
-        observations: [
-          { id: "obs-1", date: "2026-10-15", text: "Muy participativo en la dinámica sobre el Credo." },
-          { id: "obs-2", date: "2026-11-05", text: "Confirmó que asistirá a la convivencia del próximo mes." }
-        ]
-      },
-      {
-        id: "2",
-        name: "Sofía Ruiz Navarro",
-        role: "Monaguillo",
-        age: 11,
-        siblings: 1,
-        phone: "",
-        hobbies: ["Pintar / Dibujar", "Lectura", "Música / Guitarra"],
-        observations: [
-          { id: "obs-3", date: "2026-10-20", text: "Ha aprendido bien el orden de los vasos sagrados en el altar." }
-        ]
-      },
-      {
-        id: "3",
-        name: "Javier Sánchez Díaz",
-        role: "Ambos",
-        age: 13,
-        siblings: 3,
-        phone: "+34633445566",
-        hobbies: ["Baloncesto", "Ciclismo"],
-        observations: []
-      },
-      {
-        id: "4",
-        name: "Elena Martín Vega",
-        role: "Confirmación",
-        age: 15,
-        siblings: 0,
-        phone: "",
-        hobbies: ["Teatro", "Pintar / Dibujar"],
-        observations: [
-          { id: "obs-4", date: "2026-11-01", text: "Pendiente pedir teléfono de contacto a su madre en la próxima sesión." }
-        ]
-      }
-    ];
-
-    let boys = JSON.parse(localStorage.getItem("catequesis_boys")) || INITIAL_BOYS;
-    let attendance = JSON.parse(localStorage.getItem("catequesis_attendance")) || {
-      "2026-10-15": { "1": true, "2": true, "3": false, "4": true },
-      "2026-10-22": { "1": true, "2": true, "3": true, "4": true },
-      "2026-11-05": { "1": true, "2": false, "3": true, "4": false }
+    // =========================================================================
+    // CONSTANTES Y UTILIDADES
+    // =========================================================================
+    const KEYS = {
+      boys: "catequesis_boys",
+      att: "catequesis_attendance",
+      hobbies: "catequesis_hobbies",
+      meta: "catequesis_meta",
+      undo: "catequesis_undo"
     };
+    const ROLES = ["Confirmación", "Monaguillo", "Ambos"];
+    const DEFAULT_HOBBIES = [
+      "Fútbol", "Pintar / Dibujar", "Música / Guitarra", "Videojuegos", "Baloncesto",
+      "Lectura", "Teatro", "Natación", "Ciclismo", "Cocina", "Manualidades"
+    ];
+    const BACKUP_REMINDER_DAYS = 30;
+
+    function esc(s) {
+      return String(s ?? "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+    // Argumento seguro para atributos onclick="fn(...)"
+    function jsArg(v) { return esc(JSON.stringify(String(v))); }
+    // Normaliza para comparar: sin tildes, minúsculas, sin espacios extremos
+    function fold(s) {
+      return String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+    }
+    function uid(prefix) {
+      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    }
+    function toIntOrNull(v) {
+      if (v === null || v === undefined || String(v).trim() === "") return null;
+      const n = parseInt(v, 10);
+      return Number.isFinite(n) ? n : null;
+    }
+    function load(key, fallback) {
+      try {
+        const v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+    function store(key, val) {
+      try {
+        localStorage.setItem(key, JSON.stringify(val));
+        return true;
+      } catch (e) {
+        showToast("⚠️ No se pudo guardar en el dispositivo");
+        return false;
+      }
+    }
+    const collator = new Intl.Collator("es", { sensitivity: "base" });
+
+    // ---- Fechas (siempre en hora local, formato interno AAAA-MM-DD) ----
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function todayISO() {
+      const d = new Date();
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+    function isValidYMD(y, m, d) {
+      const dt = new Date(Date.UTC(y, m - 1, d));
+      return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d && y > 1900 && y < 2200;
+    }
+    // Acepta: número de serie de Excel, Date, "AAAA-MM-DD", "DD/MM/AAAA", "DD-MM-AA"...
+    function parseDateAny(v) {
+      if (v === null || v === undefined || v === "") return null;
+      if (v instanceof Date && !isNaN(v)) return `${v.getFullYear()}-${pad(v.getMonth() + 1)}-${pad(v.getDate())}`;
+      if (typeof v === "number" && isFinite(v)) {
+        if (v < 1 || v > 120000) return null;
+        const dt = new Date(Math.round((Math.floor(v) - 25569) * 86400000));
+        return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+      }
+      const s = String(v).trim();
+      let m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+      if (m) {
+        const [y, mo, d] = [+m[1], +m[2], +m[3]];
+        return isValidYMD(y, mo, d) ? `${y}-${pad(mo)}-${pad(d)}` : null;
+      }
+      m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/);
+      if (m) {
+        let y = +m[3];
+        if (y < 100) y += 2000;
+        const [d, mo] = [+m[1], +m[2]];
+        return isValidYMD(y, mo, d) ? `${y}-${pad(mo)}-${pad(d)}` : null;
+      }
+      if (/^\d+(\.\d+)?$/.test(s)) return parseDateAny(parseFloat(s));
+      return null;
+    }
+    function isoToSerial(iso) {
+      const [y, m, d] = iso.split("-").map(Number);
+      return Date.UTC(y, m - 1, d) / 86400000 + 25569;
+    }
+    function fmtDate(iso) {
+      if (!iso) return "";
+      const [y, m, d] = iso.split("-");
+      return `${d}/${m}/${y}`;
+    }
+    function daysBetween(fromMs, toMs) { return Math.floor((toMs - fromMs) / 86400000); }
+
+    // ---- Teléfonos ----
+    function hasPhone(b) { return /\d/.test(b.phone || ""); }
+    function telHref(p) { return String(p).replace(/[^\d+]/g, ""); }
+    function waNumber(p) {
+      let d = String(p).replace(/[^\d+]/g, "");
+      if (d.startsWith("+")) d = d.slice(1);
+      else if (d.startsWith("00")) d = d.slice(2);
+      else if (/^[6789]\d{8}$/.test(d)) d = "34" + d;   // móvil/fijo español sin prefijo
+      return d.replace(/\D/g, "");
+    }
+
+    // ---- Grupos ----
+    function parseRole(v) {
+      const f = fold(v);
+      if (!f) return null;
+      if (f.startsWith("amb")) return "Ambos";
+      if (f.startsWith("mon")) return "Monaguillo";
+      if (f.startsWith("conf")) return "Confirmación";
+      return null;
+    }
+    function inGroup(b, group) {
+      if (group === "todos") return true;
+      return b.role === group || b.role === "Ambos";
+    }
+    function roleBadge(role) {
+      return role === "Confirmación" ? "bg-purple-100 text-purple-700"
+        : role === "Monaguillo" ? "bg-amber-100 text-amber-800"
+        : "bg-emerald-100 text-emerald-800";
+    }
+
+    // =========================================================================
+    // ESTADO + MIGRACIÓN DE DATOS ANTIGUOS
+    // =========================================================================
+    function normalizeObs(o) {
+      if (!o || !String(o.text ?? "").trim()) return null;
+      return {
+        id: String(o.id || uid("obs")),
+        date: parseDateAny(o.date) || todayISO(),
+        text: String(o.text).trim()
+      };
+    }
+    function normalizeBoy(b) {
+      if (!b) return null;
+      const name = String(b.name ?? "").trim();
+      if (!name) return null;
+      const hobbies = Array.isArray(b.hobbies) ? b.hobbies.map(h => String(h).trim()).filter(Boolean) : [];
+      return {
+        id: String(b.id || uid("m")),
+        name,
+        role: parseRole(b.role) || "Confirmación",
+        age: toIntOrNull(b.age),
+        siblings: toIntOrNull(b.siblings) ?? 0,
+        phone: String(b.phone ?? "").trim(),
+        tutor: String(b.tutor ?? "").trim(),
+        hobbies: [...new Set(hobbies)],
+        observations: (Array.isArray(b.observations) ? b.observations : []).map(normalizeObs).filter(Boolean)
+      };
+    }
+    function normalizeAttendance(att, validIds) {
+      const out = {};
+      if (!att || typeof att !== "object") return out;
+      Object.entries(att).forEach(([date, marks]) => {
+        const iso = parseDateAny(date);
+        if (!iso || !marks || typeof marks !== "object") return;
+        Object.entries(marks).forEach(([id, val]) => {
+          if (typeof val !== "boolean") return;
+          if (validIds && !validIds.has(id)) return;
+          (out[iso] = out[iso] || {})[id] = val;
+        });
+      });
+      return out;
+    }
+    function dedupeIds(list) {
+      const seen = new Set();
+      list.forEach(b => {
+        while (seen.has(b.id)) b.id = uid("m");
+        seen.add(b.id);
+      });
+      return list;
+    }
+    function mergeHobbyCatalog(catalog, list) {
+      list.forEach(h => {
+        if (!catalog.some(c => fold(c) === fold(h))) catalog.push(h);
+      });
+      return catalog;
+    }
+
+    let boys = dedupeIds((load(KEYS.boys, []) || []).map(normalizeBoy).filter(Boolean));
+    let attendance = normalizeAttendance(load(KEYS.att, {}), new Set(boys.map(b => b.id)));
+    let availableHobbies = load(KEYS.hobbies, null);
+    if (!Array.isArray(availableHobbies)) availableHobbies = DEFAULT_HOBBIES.slice();
+    availableHobbies = mergeHobbyCatalog([], availableHobbies.map(String).filter(Boolean));
+    boys.forEach(b => mergeHobbyCatalog(availableHobbies, b.hobbies));
+    let meta = load(KEYS.meta, {}) || {};
+
+    // Estado de interfaz
     let currentFilter = "todos";
+    let hobbyFilter = null;
+    let attGroup = "todos";
+    const expandedObs = new Set();
     let selectedHobbies = new Set();
-    let currentFichaObs = [];
+    let pendingObs = [];       // observaciones de una ficha nueva aún no guardada
+    let editingObsId = null;
+    let manageHobbies = false;
+    let pendingImport = null;
 
-    const today = new Date().toISOString().split('T')[0];
+    function saveState() {
+      meta.lastChange = Date.now();
+      store(KEYS.boys, boys);
+      store(KEYS.att, attendance);
+      store(KEYS.hobbies, availableHobbies);
+      store(KEYS.meta, meta);
+      updateStats();
+      renderBackupBanner();
+    }
+    function saveMeta() { store(KEYS.meta, meta); }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("attendanceDate").value = today;
-      document.getElementById("inFichaDate").value = today;
+    function snapshot(reason) {
+      store(KEYS.undo, {
+        at: Date.now(), reason,
+        boys, attendance, hobbies: availableHobbies
+      });
+    }
+
+    function refreshAll() {
+      renderListFilters();
       renderList();
       renderAttendance();
       updateStats();
+      renderBackupBanner();
+    }
 
-      document.getElementById("newHobbyInput").addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          addNewHobby();
-        }
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("attendanceDate").value = todayISO();
+      document.getElementById("inFichaDate").value = todayISO();
+
+      const hs = document.getElementById("hobbySearch");
+      hs.addEventListener("input", renderHobbyOptions);
+      hs.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); hobbySearchEnter(); }
+        if (e.key === "Escape") { e.preventDefault(); closeHobbyPanel(); }
       });
+      document.addEventListener("click", e => {
+        const panel = document.getElementById("hobbyPanel");
+        if (panel.classList.contains("hidden") || !e.target.isConnected) return;
+        if (!document.getElementById("hobbyPicker").contains(e.target)) closeHobbyPanel();
+      });
+      document.addEventListener("keydown", e => {
+        if (e.key !== "Escape") return;
+        if (!document.getElementById("importModal").classList.contains("hidden")) closeImportModal();
+        else if (!document.getElementById("modalForm").classList.contains("hidden")) closeModal();
+      });
+
+      refreshAll();
     });
 
     function showToast(msg) {
       const toast = document.getElementById("toastMessage");
       document.getElementById("toastText").innerText = msg;
       toast.classList.remove("hidden");
-      setTimeout(() => {
-        toast.classList.add("hidden");
-      }, 3000);
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.add("hidden"), 3000);
     }
 
-    function saveState() {
-      localStorage.setItem("catequesis_boys", JSON.stringify(boys));
-      localStorage.setItem("catequesis_attendance", JSON.stringify(attendance));
-      localStorage.setItem("catequesis_hobbies", JSON.stringify(availableHobbies));
-      updateStats();
-    }
-
-    // PESTAÑAS
+    // =========================================================================
+    // PESTAÑAS Y FILTROS
+    // =========================================================================
     function switchTab(tabId) {
-      ['boys', 'attendance', 'stats'].forEach(id => {
+      ["boys", "attendance", "stats"].forEach(id => {
         document.getElementById(`tab-${id}`).classList.add("hidden");
-        const navBtn = document.getElementById(`nav-${id}`);
-        navBtn.classList.remove("text-indigo-600");
-        navBtn.classList.add("text-slate-400");
+        const nav = document.getElementById(`nav-${id}`);
+        nav.classList.remove("text-indigo-600");
+        nav.classList.add("text-slate-400");
       });
-
       document.getElementById(`tab-${tabId}`).classList.remove("hidden");
-      const activeNav = document.getElementById(`nav-${tabId}`);
-      activeNav.classList.add("text-indigo-600");
-      activeNav.classList.remove("text-slate-400");
-
-      if (tabId === 'attendance') renderAttendance();
-      if (tabId === 'stats') updateStats();
+      const active = document.getElementById(`nav-${tabId}`);
+      active.classList.add("text-indigo-600");
+      active.classList.remove("text-slate-400");
+      if (tabId === "boys") renderList();
+      if (tabId === "attendance") renderAttendance();
+      if (tabId === "stats") updateStats();
+      window.scrollTo({ top: 0 });
     }
 
-    // FILTROS
-    function setFilter(role) {
-      currentFilter = role;
-      document.querySelectorAll(".filter-btn").forEach(btn => {
-        btn.classList.remove("bg-indigo-600", "text-white", "bg-amber-600");
-        if (btn.id === 'filter-sin-telefono') {
-          btn.className = "filter-btn px-3 py-1 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200";
-        } else {
-          btn.className = "filter-btn px-3 py-1 rounded-full font-medium bg-slate-100 text-slate-600";
-        }
-      });
-
-      const activeBtn = document.getElementById(`filter-${role}`);
-      if (role === 'sin-telefono') {
-        activeBtn.className = "filter-btn px-3 py-1 rounded-full font-medium bg-amber-500 text-white shadow-xs";
-      } else {
-        activeBtn.className = "filter-btn px-3 py-1 rounded-full font-medium bg-indigo-600 text-white shadow-xs";
-      }
+    function renderListFilters() {
+      const defs = [
+        ["todos", "Todos"], ["Confirmación", "Confirmación"], ["Monaguillo", "Monaguillos"], ["sin-telefono", "⚠️ Sin teléfono"]
+      ];
+      document.getElementById("listFilters").innerHTML = defs.map(([key, label]) => {
+        const active = currentFilter === key;
+        let cls;
+        if (key === "sin-telefono") cls = active ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-700 border border-amber-200";
+        else cls = active ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600";
+        return `<button onclick="setFilter(${jsArg(key)})" class="px-3 py-1 rounded-full font-medium whitespace-nowrap ${cls}">${esc(label)}</button>`;
+      }).join("");
+    }
+    function setFilter(key) {
+      currentFilter = key;
+      renderListFilters();
       renderList();
     }
+    function setHobbyFilter(h) {
+      hobbyFilter = h;
+      switchTab("boys");
+    }
+    function goToNoPhone() {
+      currentFilter = "sin-telefono";
+      hobbyFilter = null;
+      renderListFilters();
+      switchTab("boys");
+    }
 
-    // RENDERIZAR LISTA
+    // =========================================================================
+    // LISTA DE MUCHACHOS
+    // =========================================================================
+    function sortedBoys(list = boys) {
+      return [...list].sort((a, b) => collator.compare(a.name, b.name));
+    }
+    function sortedObs(list) {
+      return [...list].sort((a, b) => b.date.localeCompare(a.date));
+    }
+
+    function renderBackupBanner() {
+      const el = document.getElementById("backupBanner");
+      const now = Date.now();
+      const last = meta.lastBackup || 0;
+      const needs = boys.length > 0 &&
+        (meta.lastChange || 0) > last &&
+        (!last || daysBetween(last, now) >= BACKUP_REMINDER_DAYS) &&
+        !(meta.snoozeBackupUntil && meta.snoozeBackupUntil > now);
+      if (!needs) { el.innerHTML = ""; return; }
+      const txt = last ? `Hace ${daysBetween(last, now)} días de tu última copia de seguridad.` : "Aún no has hecho ninguna copia de seguridad.";
+      el.innerHTML = `
+        <div class="bg-sky-50 border border-sky-200 rounded-2xl p-2.5 text-[11px] text-sky-900 flex items-center justify-between gap-2">
+          <span>💾 ${esc(txt)}</span>
+          <span class="flex gap-1.5 shrink-0">
+            <button onclick="exportToExcel()" class="bg-sky-600 text-white font-semibold px-2 py-1 rounded-lg">Hacer copia</button>
+            <button onclick="snoozeBackup()" class="text-sky-700 px-1" aria-label="Recordar más tarde">✕</button>
+          </span>
+        </div>`;
+    }
+    function snoozeBackup() {
+      meta.snoozeBackupUntil = Date.now() + 7 * 86400000;
+      saveMeta();
+      renderBackupBanner();
+    }
+
     function renderList() {
-      const query = document.getElementById("searchInput").value.toLowerCase().trim();
+      const query = fold(document.getElementById("searchInput").value);
       const container = document.getElementById("boysList");
-      container.innerHTML = "";
 
-      const filtered = boys.filter(b => {
-        const hasPhone = b.phone && b.phone.trim().length > 0;
-        let matchesFilter = false;
-        if (currentFilter === 'todos') matchesFilter = true;
-        else if (currentFilter === 'sin-telefono') matchesFilter = !hasPhone;
-        else matchesFilter = b.role === currentFilter || (b.role === 'Ambos');
+      document.getElementById("hobbyFilterChip").innerHTML = hobbyFilter ? `
+        <button onclick="hobbyFilter=null; renderList()" class="text-[11px] bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full font-semibold">
+          Afición: ${esc(hobbyFilter)} ✕
+        </button>` : "";
 
-        const matchesHobbies = (b.hobbies || []).some(h => h.toLowerCase().includes(query));
-        const matchesQuery = b.name.toLowerCase().includes(query) || (b.phone && b.phone.includes(query)) || matchesHobbies || (query.includes('telefono') && !hasPhone);
-        return matchesFilter && matchesQuery;
+      const filtered = sortedBoys().filter(b => {
+        let ok;
+        if (currentFilter === "todos") ok = true;
+        else if (currentFilter === "sin-telefono") ok = !hasPhone(b);
+        else ok = inGroup(b, currentFilter);
+        if (!ok) return false;
+        if (hobbyFilter && !b.hobbies.some(h => fold(h) === fold(hobbyFilter))) return false;
+        if (!query) return true;
+        const digits = query.replace(/\D/g, "");
+        return fold(b.name).includes(query) ||
+          fold(b.tutor).includes(query) ||
+          (digits.length >= 3 && b.phone.replace(/\D/g, "").includes(digits)) ||
+          b.hobbies.some(h => fold(h).includes(query)) ||
+          (query.includes("telefono") && !hasPhone(b));
       });
 
+      if (boys.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 text-slate-400 space-y-2">
+            <p class="text-3xl">👋</p>
+            <p class="text-xs">Todavía no hay muchachos registrados.</p>
+            <button onclick="openModal()" class="text-xs bg-indigo-600 text-white font-semibold px-3 py-1.5 rounded-xl">+ Añadir el primero</button>
+            <p class="text-[10px]">También puedes cargar un Excel desde «Resumen & Excel».</p>
+          </div>`;
+        return;
+      }
       if (filtered.length === 0) {
         container.innerHTML = `
           <div class="text-center py-8 text-slate-400">
             <p class="text-2xl mb-1">🔍</p>
             <p class="text-xs">No se encontraron muchachos con este criterio</p>
-          </div>
-        `;
+          </div>`;
         return;
       }
 
-      filtered.forEach(boy => {
-        const hasPhone = boy.phone && boy.phone.trim().length > 0;
-        const cleanPhone = hasPhone ? boy.phone.replace(/[^0-9+]/g, '') : '';
-        const roleBadgeClass = boy.role === 'Confirmación' ? 'bg-purple-100 text-purple-700' : boy.role === 'Monaguillo' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
-        const obsCount = (boy.observations || []).length;
-        const borderClass = !hasPhone ? 'border-amber-300 bg-amber-50/20 shadow-amber-100' : 'border-slate-200/80 bg-white';
-
-        const card = document.createElement("div");
-        card.className = `border rounded-2xl p-3 shadow-xs transition ${borderClass}`;
-        card.innerHTML = `
-          <div class="flex items-start justify-between">
-            <div class="flex-1 cursor-pointer" onclick="openModal('${boy.id}')">
-              <div class="flex items-center space-x-2">
-                <span class="font-bold text-slate-800 text-xs">${boy.name}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${roleBadgeClass}">
-                  ${boy.role}
-                </span>
-              </div>
-              <div class="text-[11px] text-slate-500 mt-1 flex items-center space-x-3">
-                <span>🎂 <b>${boy.age || '-'}</b> años</span>
-                <span>👨‍👩‍👧 <b>${boy.siblings !== undefined ? boy.siblings : '-'}</b> hermano(s)</span>
-              </div>
-              <div class="flex flex-wrap gap-1 mt-2">
-                ${(boy.hobbies || []).map(h => `<span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-medium">${h}</span>`).join('')}
-              </div>
-            </div>
-
-            <div class="ml-2 flex flex-col items-end justify-center">
-              ${hasPhone ? `
-                <div class="flex flex-col space-y-1">
-                  <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition" title="Llamar">
-                    📞
-                  </a>
-                  <a href="https://wa.me/${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition" title="WhatsApp">
-                    💬
-                  </a>
-                </div>
-              ` : `
-                <div onclick="openModal('${boy.id}')" class="cursor-pointer bg-rose-500 text-white text-[10px] font-extrabold px-2 py-1.5 rounded-xl shadow flex flex-col items-center justify-center text-center animate-pulse hover:bg-rose-600 transition" title="Toca para añadir teléfono">
-                  <span class="text-xs">⚠️</span>
-                  <span class="leading-tight">FALTA<br/>TELÉFONO</span>
-                </div>
-              `}
-            </div>
-          </div>
-
-          <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-            <button onclick="openModal('${boy.id}', true)" class="flex items-center space-x-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50/70 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition">
-              <span>📝 Observaciones</span>
-              <span class="bg-indigo-200 text-indigo-900 text-[10px] font-bold px-1.5 py-0.2 rounded-full">${obsCount}</span>
-            </button>
-            <button onclick="openModal('${boy.id}')" class="text-xs text-slate-400 hover:text-slate-600 font-medium">
-              Abrir Ficha ➔
-            </button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
+      container.innerHTML = `<p class="text-[10px] text-slate-400 px-1">${filtered.length} de ${boys.length} muchachos</p>` +
+        filtered.map(renderCard).join("");
     }
 
-    // MODAL DE LA FICHA
+    function renderCard(boy) {
+      const phoneOk = hasPhone(boy);
+      const obs = sortedObs(boy.observations);
+      const open = expandedObs.has(boy.id);
+      const idArg = jsArg(boy.id);
+      const borderClass = !phoneOk ? "border-amber-300 bg-amber-50/30" : "border-slate-200/80 bg-white";
+
+      const contactLine = (boy.tutor || phoneOk) ? `
+        <div class="text-[11px] text-slate-600 mt-1 flex flex-wrap gap-x-3">
+          ${boy.tutor ? `<span>👤 ${esc(boy.tutor)}</span>` : ""}
+          ${phoneOk ? `<span>📞 ${esc(boy.phone)}</span>` : ""}
+        </div>` : "";
+
+      const obsPanel = open ? `
+        <div class="mt-2 space-y-1.5">
+          ${obs.length === 0 ? `<p class="text-[11px] text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-2 text-center">Sin observaciones</p>` :
+            obs.map(o => `
+              <div class="p-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px]">
+                <span class="bg-indigo-100 text-indigo-700 font-semibold px-1.5 py-0.5 rounded-md">📅 ${esc(fmtDate(o.date))}</span>
+                <p class="text-slate-700 whitespace-pre-wrap leading-relaxed mt-1">${esc(o.text)}</p>
+              </div>`).join("")}
+          <button onclick="openModal(${idArg}, true)" class="w-full text-[11px] text-indigo-700 font-semibold bg-indigo-50 hover:bg-indigo-100 rounded-lg py-1">✏️ Añadir o editar en la ficha</button>
+        </div>` : "";
+
+      return `
+        <div class="border rounded-2xl p-3 shadow-sm transition ${borderClass}">
+          <div class="flex items-start justify-between">
+            <div class="flex-1 min-w-0 cursor-pointer" onclick="openModal(${idArg})">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-slate-800 text-xs">${esc(boy.name)}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${roleBadge(boy.role)}">${esc(boy.role)}</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-1 flex items-center space-x-3">
+                <span>🎂 <b>${boy.age ?? "-"}</b> años</span>
+                <span>👨‍👩‍👧 <b>${boy.siblings ?? "-"}</b> hermano(s)</span>
+              </div>
+              ${contactLine}
+              <div class="flex flex-wrap gap-1 mt-2">
+                ${boy.hobbies.map(h => `<span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-medium">${esc(h)}</span>`).join("")}
+              </div>
+            </div>
+            <div class="ml-2 flex flex-col items-end justify-center">
+              ${phoneOk ? `
+                <div class="flex flex-col space-y-1">
+                  <a href="tel:${esc(telHref(boy.phone))}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition" title="Llamar">📞</a>
+                  <a href="https://wa.me/${esc(waNumber(boy.phone))}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition" title="WhatsApp">💬</a>
+                </div>` : `
+                <div onclick="openModal(${idArg})" class="cursor-pointer bg-rose-500 text-white text-[10px] font-extrabold px-2 py-1.5 rounded-xl shadow flex flex-col items-center text-center hover:bg-rose-600 transition" title="Toca para añadir teléfono">
+                  <span class="text-xs">⚠️</span><span class="leading-tight">FALTA<br/>TELÉFONO</span>
+                </div>`}
+            </div>
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+            <button onclick="toggleCardObs(${idArg})" aria-expanded="${open}" class="flex items-center space-x-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50/70 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition">
+              <span>📝 Observaciones</span>
+              <span class="bg-indigo-200 text-indigo-900 text-[10px] font-bold px-1.5 rounded-full">${obs.length}</span>
+              <span class="text-[10px]">${open ? "▴" : "▾"}</span>
+            </button>
+            <button onclick="openModal(${idArg})" class="text-xs text-slate-400 hover:text-slate-600 font-medium">Abrir ficha ➔</button>
+          </div>
+          ${obsPanel}
+        </div>`;
+    }
+    function toggleCardObs(id) {
+      if (expandedObs.has(id)) expandedObs.delete(id); else expandedObs.add(id);
+      renderList();
+    }
+
+    // =========================================================================
+    // FICHA (MODAL)
+    // =========================================================================
+    function currentBoy() {
+      const id = document.getElementById("boyId").value;
+      return id ? boys.find(b => b.id === id) : null;
+    }
+
     function openModal(boyId = null, scrollToObs = false) {
-      selectedHobbies.clear();
       document.getElementById("boyForm").reset();
       document.getElementById("btnDelete").classList.add("hidden");
-      document.getElementById("newHobbyInput").value = "";
       document.getElementById("inFichaText").value = "";
-      document.getElementById("inFichaDate").value = today;
+      document.getElementById("inFichaDate").value = todayISO();
+      document.getElementById("hobbySearch").value = "";
+      closeHobbyPanel();
+      selectedHobbies = new Set();
+      pendingObs = [];
+      editingObsId = null;
 
-      if (boyId) {
-        const boy = boys.find(b => b.id === boyId);
-        if (boy) {
-          document.getElementById("modalTitle").innerText = boy.name;
-          document.getElementById("modalSubtitle").innerText = `Ficha de ${boy.role}`;
-          document.getElementById("boyId").value = boy.id;
-          document.getElementById("boyName").value = boy.name;
-          document.getElementById("boyAge").value = boy.age || '';
-          document.getElementById("boySiblings").value = boy.siblings !== undefined ? boy.siblings : 0;
-          document.getElementById("boyPhone").value = boy.phone || '';
-          
-          const roleRadio = document.querySelector(`input[name="boyRole"][value="${boy.role}"]`);
-          if (roleRadio) roleRadio.checked = true;
-
-          (boy.hobbies || []).forEach(h => {
-            selectedHobbies.add(h);
-            if (!availableHobbies.includes(h)) availableHobbies.push(h);
-          });
-
-          currentFichaObs = boy.observations ? JSON.parse(JSON.stringify(boy.observations)) : [];
-          document.getElementById("btnDelete").classList.remove("hidden");
-        }
+      const boy = boyId ? boys.find(b => b.id === boyId) : null;
+      if (boy) {
+        document.getElementById("modalTitle").innerText = boy.name;
+        document.getElementById("modalSubtitle").innerText = `Ficha de ${boy.role}`;
+        document.getElementById("boyId").value = boy.id;
+        document.getElementById("boyName").value = boy.name;
+        document.getElementById("boyAge").value = boy.age ?? "";
+        document.getElementById("boySiblings").value = boy.siblings ?? 0;
+        document.getElementById("boyPhone").value = boy.phone;
+        document.getElementById("boyTutor").value = boy.tutor;
+        const radio = document.querySelector(`input[name="boyRole"][value="${boy.role}"]`);
+        if (radio) radio.checked = true;
+        boy.hobbies.forEach(h => selectedHobbies.add(h));
+        mergeHobbyCatalog(availableHobbies, boy.hobbies);
+        document.getElementById("btnDelete").classList.remove("hidden");
+        document.getElementById("obsSaveHint").innerText = "Se guarda al momento";
       } else {
-        document.getElementById("modalTitle").innerText = "Registrar Nuevo Muchacho";
-        document.getElementById("modalSubtitle").innerText = "Nueva alta en la catequesis";
+        document.getElementById("modalTitle").innerText = "Registrar nuevo muchacho";
+        document.getElementById("modalSubtitle").innerText = "Nueva alta";
         document.getElementById("boyId").value = "";
-        currentFichaObs = [];
+        document.getElementById("obsSaveHint").innerText = "Se guardará con la ficha";
       }
 
-      renderHobbiesSelector();
+      renderHobbyPicker();
       renderFichaObservations();
       document.getElementById("modalForm").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
 
       if (scrollToObs) {
-        setTimeout(() => {
-          document.getElementById("fichaObservationsSection").scrollIntoView({ behavior: 'smooth' });
-        }, 150);
+        setTimeout(() => document.getElementById("fichaObservationsSection").scrollIntoView({ behavior: "smooth" }), 150);
+      } else if (!boy) {
+        setTimeout(() => document.getElementById("boyName").focus(), 100);
       }
     }
 
     function closeModal() {
       document.getElementById("modalForm").classList.add("hidden");
-    }
-
-    function renderFichaObservations() {
-      const container = document.getElementById("inFichaObsList");
-      document.getElementById("fichaObsCount").innerText = currentFichaObs.length;
-      container.innerHTML = "";
-
-      if (currentFichaObs.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-4 text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
-            <p class="text-xs">No hay anotaciones previas en esta ficha</p>
-          </div>
-        `;
-        return;
-      }
-
-      const sorted = [...currentFichaObs].sort((a,b) => new Date(b.date) - new Date(a.date));
-
-      sorted.forEach(obs => {
-        const item = document.createElement("div");
-        item.className = "p-2 bg-white border border-slate-200 rounded-xl text-xs space-y-1 shadow-xs";
-        item.innerHTML = `
-          <div class="flex justify-between items-center text-[11px]">
-            <span class="bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-md">📅 ${obs.date}</span>
-            <button type="button" onclick="deleteFichaObs('${obs.id}')" class="text-slate-400 hover:text-rose-600 font-bold px-1.5 transition" title="Borrar nota">✕</button>
-          </div>
-          <p class="text-slate-700 whitespace-pre-wrap leading-relaxed mt-0.5">${obs.text}</p>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function addObsFromFicha() {
-      const date = document.getElementById("inFichaDate").value || today;
-      const text = document.getElementById("inFichaText").value.trim();
-
-      if (!text) {
-        alert("Escribe el texto de la observación antes de añadir.");
-        return;
-      }
-
-      currentFichaObs.unshift({
-        id: "obs-" + Date.now(),
-        date: date,
-        text: text
-      });
-
-      document.getElementById("inFichaText").value = "";
-      renderFichaObservations();
-    }
-
-    function deleteFichaObs(obsId) {
-      currentFichaObs = currentFichaObs.filter(o => o.id !== obsId);
-      renderFichaObservations();
+      document.body.style.overflow = "";
     }
 
     function saveBoy(e) {
       e.preventDefault();
-      const id = document.getElementById("boyId").value || Date.now().toString();
-      const name = document.getElementById("boyName").value.trim();
-      const role = document.querySelector('input[name="boyRole"]:checked').value;
-      const age = parseInt(document.getElementById("boyAge").value) || null;
-      const siblings = parseInt(document.getElementById("boySiblings").value) || 0;
-      const phone = document.getElementById("boyPhone").value.trim();
-      const hobbiesList = Array.from(selectedHobbies);
+      const existing = currentBoy();
+      const name = document.getElementById("boyName").value.trim().replace(/\s+/g, " ");
+      if (!name) return;
 
+      const dup = boys.find(b => fold(b.name) === fold(name) && (!existing || b.id !== existing.id));
+      if (dup && !confirm(`Ya existe un muchacho llamado «${dup.name}». ¿Guardar igualmente?`)) return;
+
+      // Si quedó texto escrito sin pulsar "Añadir", se guarda también
       const pendingText = document.getElementById("inFichaText").value.trim();
-      if (pendingText) {
-        currentFichaObs.unshift({
-          id: "obs-" + Date.now(),
-          date: document.getElementById("inFichaDate").value || today,
-          text: pendingText
-        });
-      }
+      const pendingDate = document.getElementById("inFichaDate").value || todayISO();
+      const extraObs = pendingText ? [{ id: uid("obs"), date: pendingDate, text: pendingText }] : [];
 
-      const existingIndex = boys.findIndex(b => b.id === id);
-      const boyData = { 
-        id, 
-        name, 
-        role, 
-        age, 
-        siblings, 
-        phone, 
-        hobbies: hobbiesList,
-        observations: currentFichaObs
+      const data = {
+        id: existing ? existing.id : uid("m"),
+        name,
+        role: document.querySelector('input[name="boyRole"]:checked').value,
+        age: toIntOrNull(document.getElementById("boyAge").value),
+        siblings: toIntOrNull(document.getElementById("boySiblings").value) ?? 0,
+        phone: document.getElementById("boyPhone").value.trim(),
+        tutor: document.getElementById("boyTutor").value.trim(),
+        hobbies: [...selectedHobbies],
+        observations: [...extraObs, ...(existing ? existing.observations : pendingObs)]
       };
 
-      if (existingIndex > -1) {
-        boys[existingIndex] = boyData;
-      } else {
-        boys.push(boyData);
-      }
+      if (existing) boys[boys.indexOf(existing)] = data;
+      else boys.push(data);
 
       saveState();
       renderList();
       closeModal();
-      showToast("Ficha guardada correctamente");
+      showToast("Ficha guardada");
     }
 
     function deleteCurrentBoy() {
-      const id = document.getElementById("boyId").value;
-      if (confirm("¿Seguro que deseas eliminar este muchacho y todos sus registros asociados?")) {
-        boys = boys.filter(b => b.id !== id);
-        saveState();
-        renderList();
-        closeModal();
-        showToast("Registro eliminado");
-      }
+      const boy = currentBoy();
+      if (!boy) return;
+      if (!confirm(`¿Eliminar a «${boy.name}» con todas sus observaciones y su asistencia?`)) return;
+      boys = boys.filter(b => b.id !== boy.id);
+      Object.keys(attendance).forEach(d => {
+        delete attendance[d][boy.id];
+        if (Object.keys(attendance[d]).length === 0) delete attendance[d];
+      });
+      saveState();
+      renderList();
+      closeModal();
+      showToast("Muchacho eliminado");
     }
 
-    function addNewHobby() {
-      const input = document.getElementById("newHobbyInput");
-      const val = input.value.trim();
+    // ---- Aficiones: desplegable con casillas ----
+    function toggleHobbyPanel() {
+      const panel = document.getElementById("hobbyPanel");
+      if (panel.classList.contains("hidden")) {
+        panel.classList.remove("hidden");
+        document.getElementById("hobbyCaret").innerText = "▴";
+        renderHobbyOptions();
+        setTimeout(() => document.getElementById("hobbySearch").focus(), 50);
+      } else {
+        closeHobbyPanel();
+      }
+    }
+    function closeHobbyPanel() {
+      document.getElementById("hobbyPanel").classList.add("hidden");
+      document.getElementById("hobbyCaret").innerText = "▾";
+      document.getElementById("hobbySearch").value = "";
+    }
+    function renderHobbyPicker() {
+      const sum = document.getElementById("hobbySummary");
+      const n = selectedHobbies.size;
+      sum.innerText = n === 0 ? "Seleccionar aficiones" : `${n} seleccionada${n > 1 ? "s" : ""}`;
+      sum.className = n === 0 ? "text-slate-500" : "text-slate-800 font-medium";
+      document.getElementById("hobbyChips").innerHTML = [...selectedHobbies]
+        .sort(collator.compare)
+        .map(h => `<span class="bg-indigo-600 text-white text-[11px] pl-2 pr-1 py-0.5 rounded-full flex items-center gap-1">${esc(h)}
+          <button type="button" onclick="toggleHobby(${jsArg(h)})" class="w-4 h-4 rounded-full bg-indigo-500 leading-none" aria-label="Quitar ${esc(h)}">×</button></span>`)
+        .join("");
+      if (!document.getElementById("hobbyPanel").classList.contains("hidden")) renderHobbyOptions();
+    }
+    function renderHobbyOptions() {
+      const raw = document.getElementById("hobbySearch").value.trim();
+      const q = fold(raw);
+      const list = [...availableHobbies].sort(collator.compare).filter(h => !q || fold(h).includes(q));
+      const box = document.getElementById("hobbyOptions");
+      box.innerHTML = list.length === 0
+        ? `<p class="text-[11px] text-slate-400 px-1 py-1">Ninguna afición coincide.</p>`
+        : list.map(h => {
+            const checked = selectedHobbies.has(h);
+            return `<label class="flex items-center gap-2 px-1.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" ${checked ? "checked" : ""} onchange="toggleHobby(${jsArg(h)})" class="w-4 h-4 accent-indigo-600" />
+              <span class="${checked ? "font-semibold text-indigo-700" : "text-slate-700"}">${esc(h)}</span>
+            </label>`;
+          }).join("");
+      const exact = availableHobbies.some(h => fold(h) === q);
+      document.getElementById("hobbyAddWrap").innerHTML = (q && !exact) ? `
+        <button type="button" onclick="addHobbyFromSearch()" class="w-full py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-semibold">
+          + Añadir «${esc(raw)}» como nueva afición
+        </button>` : "";
+    }
+    function toggleHobby(h) {
+      if (selectedHobbies.has(h)) selectedHobbies.delete(h); else selectedHobbies.add(h);
+      renderHobbyPicker();
+    }
+    function hobbySearchEnter() {
+      const raw = document.getElementById("hobbySearch").value.trim();
+      if (!raw) return;
+      const match = availableHobbies.find(h => fold(h) === fold(raw));
+      if (match) {
+        selectedHobbies.add(match);
+        document.getElementById("hobbySearch").value = "";
+        renderHobbyPicker();
+      } else {
+        addHobbyFromSearch();
+      }
+    }
+    function addHobbyFromSearch() {
+      const input = document.getElementById("hobbySearch");
+      let val = input.value.trim().replace(/\s+/g, " ");
       if (!val) return;
-
-      const existing = availableHobbies.find(h => h.toLowerCase() === val.toLowerCase());
-      if (existing) {
-        selectedHobbies.add(existing);
+      val = val.charAt(0).toUpperCase() + val.slice(1);
+      const match = availableHobbies.find(h => fold(h) === fold(val));
+      if (match) {
+        selectedHobbies.add(match);
       } else {
         availableHobbies.push(val);
         selectedHobbies.add(val);
-        saveState();
+        store(KEYS.hobbies, availableHobbies);
+        showToast(`Afición «${val}» añadida`);
+      }
+      input.value = "";
+      renderHobbyPicker();
+      input.focus();
+    }
+
+    // ---- Observaciones de la ficha ----
+    function fichaObsList() {
+      const boy = currentBoy();
+      return boy ? boy.observations : pendingObs;
+    }
+    function afterObsChange() {
+      if (currentBoy()) { saveState(); renderList(); }
+      renderFichaObservations();
+    }
+    function renderFichaObservations() {
+      const list = fichaObsList();
+      const container = document.getElementById("inFichaObsList");
+      document.getElementById("fichaObsCount").innerText = list.length;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-4 text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+            <p class="text-xs">No hay observaciones en esta ficha</p>
+          </div>`;
+        return;
       }
 
-      input.value = "";
-      renderHobbiesSelector();
+      container.innerHTML = sortedObs(list).map(o => {
+        const idArg = jsArg(o.id);
+        if (o.id === editingObsId) {
+          return `
+            <div class="p-2 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="text-[11px] font-bold text-amber-900">Editando observación</span>
+                <input type="date" id="editObsDate" value="${esc(o.date)}" class="text-xs bg-white border border-amber-200 rounded-lg px-2 py-0.5" />
+              </div>
+              <textarea id="editObsText" rows="3" class="w-full text-xs p-2 bg-white border border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400">${esc(o.text)}</textarea>
+              <div class="flex justify-end gap-1.5">
+                <button type="button" onclick="cancelEditObs()" class="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium">Cancelar</button>
+                <button type="button" onclick="saveEditObs(${idArg})" class="px-3 py-1 rounded-lg bg-amber-500 text-white font-semibold">Guardar</button>
+              </div>
+            </div>`;
+        }
+        return `
+          <div class="p-2 bg-white border border-slate-200 rounded-xl text-xs shadow-sm">
+            <div class="flex justify-between items-center text-[11px]">
+              <span class="bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-md">📅 ${esc(fmtDate(o.date))}</span>
+              <span class="flex gap-1">
+                <button type="button" onclick="startEditObs(${idArg})" class="px-1.5 py-0.5 rounded hover:bg-slate-100" title="Editar">✏️</button>
+                <button type="button" onclick="deleteFichaObs(${idArg})" class="px-1.5 py-0.5 rounded hover:bg-rose-50" title="Borrar">🗑</button>
+              </span>
+            </div>
+            <p class="text-slate-700 whitespace-pre-wrap leading-relaxed mt-1">${esc(o.text)}</p>
+          </div>`;
+      }).join("");
+    }
+    function addObsFromFicha() {
+      const date = document.getElementById("inFichaDate").value || todayISO();
+      const textEl = document.getElementById("inFichaText");
+      const text = textEl.value.trim();
+      if (!text) { textEl.focus(); showToast("Escribe primero la observación"); return; }
+      fichaObsList().push({ id: uid("obs"), date, text });
+      textEl.value = "";
+      afterObsChange();
+      if (currentBoy()) showToast("Observación guardada");
+    }
+    function startEditObs(id) {
+      editingObsId = id;
+      renderFichaObservations();
+      const t = document.getElementById("editObsText");
+      if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); }
+    }
+    function cancelEditObs() {
+      editingObsId = null;
+      renderFichaObservations();
+    }
+    function saveEditObs(id) {
+      const o = fichaObsList().find(x => x.id === id);
+      if (!o) return;
+      const text = document.getElementById("editObsText").value.trim();
+      if (!text) { showToast("La observación no puede quedar vacía"); return; }
+      o.text = text;
+      o.date = document.getElementById("editObsDate").value || o.date;
+      editingObsId = null;
+      afterObsChange();
+      if (currentBoy()) showToast("Observación actualizada");
+    }
+    function deleteFichaObs(id) {
+      if (!confirm("¿Borrar esta observación?")) return;
+      const list = fichaObsList();
+      const i = list.findIndex(o => o.id === id);
+      if (i > -1) list.splice(i, 1);
+      afterObsChange();
     }
 
-    function renderHobbiesSelector() {
-      const container = document.getElementById("hobbiesSelector");
-      container.innerHTML = "";
-
-      availableHobbies.forEach(hobby => {
-        const isSelected = selectedHobbies.has(hobby);
-        const pill = document.createElement("button");
-        pill.type = "button";
-        pill.onclick = () => {
-          if (selectedHobbies.has(hobby)) {
-            selectedHobbies.delete(hobby);
-          } else {
-            selectedHobbies.add(hobby);
-          }
-          renderHobbiesSelector();
-        };
-        pill.className = `px-2.5 py-1 rounded-full text-[11px] font-medium transition ${
-          isSelected ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-        }`;
-        pill.innerText = (isSelected ? "✓ " : "+ ") + hobby;
-        container.appendChild(pill);
-      });
-    }
-
+    // =========================================================================
     // ASISTENCIA
-    function renderAttendance() {
-      const date = document.getElementById("attendanceDate").value || today;
-      const dayRecord = attendance[date] || {};
-      const container = document.getElementById("attendanceList");
-      container.innerHTML = "";
-
-      let presentCount = 0;
-      const total = boys.length;
-
-      document.getElementById("totalStudents").innerText = total;
-
-      boys.forEach(boy => {
-        const isPresent = dayRecord[boy.id] === true;
-        if (isPresent) presentCount++;
-
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl shadow-xs";
-        row.innerHTML = `
-          <div>
-            <p class="text-xs font-bold text-slate-800">${boy.name}</p>
-            <p class="text-[10px] text-slate-500">${boy.role}</p>
-          </div>
-          <div class="flex space-x-1.5">
-            <button onclick="setAttendance('${boy.id}', true)" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${isPresent ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700'}">
-              <span>✓ Presente</span>
-            </button>
-            <button onclick="setAttendance('${boy.id}', false)" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${!isPresent && dayRecord[boy.id] !== undefined ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-700'}">
-              <span>✕ Falta</span>
-            </button>
-          </div>
-        `;
-        container.appendChild(row);
+    // =========================================================================
+    function sessionDates() {
+      return Object.keys(attendance).filter(d => Object.keys(attendance[d]).length > 0).sort();
+    }
+    function boyStats(id) {
+      let sessions = 0, present = 0, streakAbs = 0;
+      sessionDates().forEach(d => {
+        const v = attendance[d][id];
+        if (v === undefined) return;
+        sessions++;
+        if (v) { present++; streakAbs = 0; } else { streakAbs++; }
       });
+      return { sessions, present, pct: sessions ? Math.round(present / sessions * 100) : null, streakAbs };
+    }
 
-      document.getElementById("presentCount").innerText = presentCount;
-      const rate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
+    function renderAttFilters() {
+      const defs = [["todos", "Todos"], ["Confirmación", "Confirmación"], ["Monaguillo", "Monaguillos"]];
+      document.getElementById("attFilters").innerHTML = defs.map(([k, l]) =>
+        `<button onclick="attGroup=${jsArg(k)}; renderAttendance()" class="px-3 py-1 rounded-full font-medium ${attGroup === k ? "bg-indigo-600 text-white" : "bg-white text-slate-600 border border-indigo-100"}">${esc(l)}</button>`
+      ).join("");
+    }
+    function renderSessionSelect(current) {
+      const dates = sessionDates().reverse();
+      const sel = document.getElementById("sessionSelect");
+      sel.innerHTML = `<option value="">${dates.length ? "Elegir..." : "Ninguna todavía"}</option>` +
+        dates.map(d => {
+          const n = Object.values(attendance[d]).filter(v => v).length;
+          return `<option value="${esc(d)}" ${d === current ? "selected" : ""}>${esc(fmtDate(d))} · ${n} presentes</option>`;
+        }).join("");
+    }
+    function pickSession(d) {
+      if (!d) return;
+      document.getElementById("attendanceDate").value = d;
+      renderAttendance();
+    }
+    function attDate() {
+      return document.getElementById("attendanceDate").value || todayISO();
+    }
+
+    function renderAttendance() {
+      const date = attDate();
+      const day = attendance[date] || {};
+      const list = sortedBoys(boys.filter(b => inGroup(b, attGroup)));
+      renderAttFilters();
+      renderSessionSelect(date);
+
+      let present = 0, absent = 0;
+      const container = document.getElementById("attendanceList");
+      if (list.length === 0) {
+        container.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">No hay muchachos en este grupo.</p>`;
+      } else {
+        container.innerHTML = list.map(boy => {
+          const v = day[boy.id];
+          if (v === true) present++;
+          if (v === false) absent++;
+          const idArg = jsArg(boy.id);
+          return `
+            <div class="flex items-center justify-between p-2.5 bg-white border ${v === undefined ? "border-slate-200" : v ? "border-emerald-200" : "border-rose-200"} rounded-xl shadow-sm">
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-slate-800 truncate">${esc(boy.name)}</p>
+                <p class="text-[10px] text-slate-500">${esc(boy.role)}</p>
+              </div>
+              <div class="flex space-x-1.5 shrink-0">
+                <button onclick="setAttendance(${idArg}, true)" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition ${v === true ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-emerald-50"}">✓ Presente</button>
+                <button onclick="setAttendance(${idArg}, false)" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition ${v === false ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-rose-50"}">✕ Falta</button>
+              </div>
+            </div>`;
+        }).join("");
+      }
+
+      const total = list.length;
+      document.getElementById("totalStudents").innerText = total;
+      document.getElementById("presentCount").innerText = present;
+      document.getElementById("absentCount").innerText = absent;
+      document.getElementById("unmarkedCount").innerText = total - present - absent;
+      const rate = total > 0 ? Math.round(present / total * 100) : 0;
       document.getElementById("rateLabel").innerText = `${rate}%`;
       document.getElementById("attendanceProgressBar").style.width = `${rate}%`;
     }
 
     function setAttendance(boyId, status) {
-      const date = document.getElementById("attendanceDate").value || today;
-      if (!attendance[date]) attendance[date] = {};
-      attendance[date][boyId] = status;
+      const date = attDate();
+      const day = attendance[date] || (attendance[date] = {});
+      if (day[boyId] === status) delete day[boyId];   // volver a tocar = desmarcar
+      else day[boyId] = status;
+      if (Object.keys(day).length === 0) delete attendance[date];
       saveState();
       renderAttendance();
     }
-
     function markAllPresent() {
-      const date = document.getElementById("attendanceDate").value || today;
-      if (!attendance[date]) attendance[date] = {};
-      boys.forEach(b => {
-        attendance[date][b.id] = true;
-      });
+      const date = attDate();
+      const list = boys.filter(b => inGroup(b, attGroup));
+      if (list.length === 0) return;
+      const day = attendance[date] || (attendance[date] = {});
+      list.forEach(b => { day[b.id] = true; });
+      saveState();
+      renderAttendance();
+    }
+    function clearVisibleAttendance() {
+      const date = attDate();
+      const day = attendance[date];
+      if (!day) return;
+      const list = boys.filter(b => inGroup(b, attGroup) && day[b.id] !== undefined);
+      if (list.length === 0) return;
+      if (!confirm(`¿Quitar las marcas de ${list.length} muchacho(s) en la sesión del ${fmtDate(date)}?`)) return;
+      list.forEach(b => delete day[b.id]);
+      if (Object.keys(day).length === 0) delete attendance[date];
       saveState();
       renderAttendance();
     }
 
-    // ESTADÍSTICAS
+    // =========================================================================
+    // RESUMEN
+    // =========================================================================
     function updateStats() {
       const total = boys.length;
       document.getElementById("statTotal").innerText = total;
+      const conf = boys.filter(b => inGroup(b, "Confirmación")).length;
+      const mon = boys.filter(b => inGroup(b, "Monaguillo")).length;
+      const both = boys.filter(b => b.role === "Ambos").length;
+      document.getElementById("statSubgroups").innerText = `${conf} Conf. · ${mon} Mon.${both ? ` (${both} ambos)` : ""}`;
 
-      const confCount = boys.filter(b => b.role === 'Confirmación' || b.role === 'Ambos').length;
-      const monCount = boys.filter(b => b.role === 'Monaguillo' || b.role === 'Ambos').length;
-      document.getElementById("statSubgroups").innerText = `${confCount} Conf. · ${monCount} Mon.`;
+      const dates = sessionDates();
+      let marks = 0, presents = 0;
+      dates.forEach(d => Object.values(attendance[d]).forEach(v => { marks++; if (v) presents++; }));
+      document.getElementById("statAvgAttendance").innerText = marks ? `${Math.round(presents / marks * 100)}%` : "–";
+      document.getElementById("statSessions").innerText = `${dates.length} sesi${dates.length === 1 ? "ón" : "ones"} registrada${dates.length === 1 ? "" : "s"}`;
 
-      const sessionDates = Object.keys(attendance);
-      if (sessionDates.length > 0 && total > 0) {
-        let totalPresents = 0;
-        let totalPossible = sessionDates.length * total;
-        sessionDates.forEach(d => {
-          Object.values(attendance[d]).forEach(val => {
-            if (val === true) totalPresents++;
-          });
-        });
-        const avg = Math.round((totalPresents / totalPossible) * 100);
-        document.getElementById("statAvgAttendance").innerText = `${avg}%`;
-      } else {
-        document.getElementById("statAvgAttendance").innerText = `100%`;
-      }
+      document.getElementById("statNoPhone").innerText = boys.filter(b => !hasPhone(b)).length;
 
-      const hobbyCounts = {};
-      boys.forEach(b => {
-        (b.hobbies || []).forEach(h => {
-          hobbyCounts[h] = (hobbyCounts[h] || 0) + 1;
-        });
-      });
+      const allObs = boys.flatMap(b => b.observations);
+      document.getElementById("statObs").innerText = allObs.length;
+      const lastObs = allObs.reduce((m, o) => (o.date > m ? o.date : m), "");
+      document.getElementById("statObsLast").innerText = lastObs ? `Última: ${fmtDate(lastObs)}` : "Ninguna todavía";
 
-      const hobbiesCloud = document.getElementById("hobbiesCloud");
-      hobbiesCloud.innerHTML = "";
-      const sorted = Object.entries(hobbyCounts).sort((a,b) => b[1] - a[1]);
-
-      if (sorted.length === 0) {
-        hobbiesCloud.innerHTML = `<span class="text-xs text-slate-400">Sin aficiones registradas todavía</span>`;
-      } else {
-        sorted.forEach(([h, count]) => {
-          const pill = document.createElement("span");
-          pill.className = "bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-xl flex items-center space-x-1";
-          pill.innerHTML = `<span>${h}</span><b class="bg-indigo-200 text-indigo-800 text-[10px] px-1.5 py-0.2 rounded-full">${count}</b>`;
-          hobbiesCloud.appendChild(pill);
-        });
-      }
+      renderAttendanceAlerts();
+      renderHobbiesCloud();
+      renderBackupInfo();
     }
 
-    // EXPORTAR A EXCEL
-    function exportToExcel() {
-      const sessionDates = Object.keys(attendance).sort();
-
-      // Hoja 1: Muchachos
-      let sheet1Rows = `
-        <Row ss:StyleID="HeaderStyle">
-          <Cell><Data ss:Type="String">Nombre y Apellidos</Data></Cell>
-          <Cell><Data ss:Type="String">Grupo</Data></Cell>
-          <Cell><Data ss:Type="String">Edad</Data></Cell>
-          <Cell><Data ss:Type="String">Nº Hermanos</Data></Cell>
-          <Cell><Data ss:Type="String">Teléfono Contacto</Data></Cell>
-          <Cell><Data ss:Type="String">Aficiones</Data></Cell>
-          <Cell><Data ss:Type="String">Total Observaciones</Data></Cell>
-          <Cell><Data ss:Type="String">Total Asistencias</Data></Cell>
-          <Cell><Data ss:Type="String">% Asistencia</Data></Cell>
-        </Row>
-      `;
-
-      boys.forEach(b => {
-        const hasPhone = b.phone && b.phone.trim().length > 0;
-        const phoneText = hasPhone ? b.phone : "⚠️ FALTA TELÉFONO";
-        const hobbiesText = (b.hobbies || []).join(", ");
-        const obsCount = (b.observations || []).length;
-
-        let presents = 0;
-        sessionDates.forEach(d => {
-          if (attendance[d] && attendance[d][b.id] === true) presents++;
-        });
-        const pct = sessionDates.length > 0 ? Math.round((presents / sessionDates.length) * 100) + "%" : "100%";
-        const phoneStyle = hasPhone ? "" : ` ss:StyleID="AlertStyle"`;
-
-        sheet1Rows += `
-          <Row>
-            <Cell><Data ss:Type="String">${escapeXml(b.name)}</Data></Cell>
-            <Cell><Data ss:Type="String">${escapeXml(b.role)}</Data></Cell>
-            <Cell><Data ss:Type="Number">${b.age || 0}</Data></Cell>
-            <Cell><Data ss:Type="Number">${b.siblings || 0}</Data></Cell>
-            <Cell${phoneStyle}><Data ss:Type="String">${escapeXml(phoneText)}</Data></Cell>
-            <Cell><Data ss:Type="String">${escapeXml(hobbiesText)}</Data></Cell>
-            <Cell><Data ss:Type="Number">${obsCount}</Data></Cell>
-            <Cell><Data ss:Type="Number">${presents}</Data></Cell>
-            <Cell><Data ss:Type="String">${pct}</Data></Cell>
-          </Row>
-        `;
-      });
-
-      // Hoja 2: Observaciones
-      let sheet2Rows = `
-        <Row ss:StyleID="HeaderStyle">
-          <Cell><Data ss:Type="String">Fecha</Data></Cell>
-          <Cell><Data ss:Type="String">Muchacho</Data></Cell>
-          <Cell><Data ss:Type="String">Grupo</Data></Cell>
-          <Cell><Data ss:Type="String">Observación / Nota de Evolución</Data></Cell>
-        </Row>
-      `;
-
-      const allObs = [];
-      boys.forEach(b => {
-        (b.observations || []).forEach(o => {
-          allObs.push({
-            date: o.date,
-            boyName: b.name,
-            role: b.role,
-            text: o.text
-          });
-        });
-      });
-
-      allObs.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-      if (allObs.length === 0) {
-        sheet2Rows += `
-          <Row>
-            <Cell><Data ss:Type="String">-</Data></Cell>
-            <Cell><Data ss:Type="String">Sin observaciones registradas</Data></Cell>
-            <Cell><Data ss:Type="String">-</Data></Cell>
-            <Cell><Data ss:Type="String">-</Data></Cell>
-          </Row>
-        `;
-      } else {
-        allObs.forEach(o => {
-          sheet2Rows += `
-            <Row>
-              <Cell><Data ss:Type="String">${escapeXml(o.date)}</Data></Cell>
-              <Cell><Data ss:Type="String">${escapeXml(o.boyName)}</Data></Cell>
-              <Cell><Data ss:Type="String">${escapeXml(o.role)}</Data></Cell>
-              <Cell><Data ss:Type="String">${escapeXml(o.text)}</Data></Cell>
-            </Row>
-          `;
-        });
+    function renderAttendanceAlerts() {
+      const el = document.getElementById("attendanceAlerts");
+      const alerts = sortedBoys().map(b => ({ b, s: boyStats(b.id) }))
+        .filter(({ s }) => s.streakAbs >= 2 || (s.sessions >= 3 && s.pct < 50));
+      if (sessionDates().length === 0) {
+        el.innerHTML = `<p class="text-[11px] text-slate-400">Aún no se ha pasado lista.</p>`;
+        return;
       }
+      if (alerts.length === 0) {
+        el.innerHTML = `<p class="text-[11px] text-emerald-700">👍 Nadie con faltas preocupantes.</p>`;
+        return;
+      }
+      el.innerHTML = alerts.map(({ b, s }) => `
+        <div class="flex items-center justify-between bg-rose-50 border border-rose-100 rounded-xl px-2.5 py-1.5">
+          <button onclick="openModal(${jsArg(b.id)})" class="text-left min-w-0">
+            <p class="text-xs font-semibold text-slate-800 truncate">${esc(b.name)}</p>
+            <p class="text-[10px] text-rose-700">${s.pct}% asistencia (${s.present}/${s.sessions})${s.streakAbs >= 2 ? ` · ${s.streakAbs} faltas seguidas` : ""}</p>
+          </button>
+          ${hasPhone(b) ? `<a href="tel:${esc(telHref(b.phone))}" class="w-7 h-7 rounded-full bg-white border border-rose-200 flex items-center justify-center shrink-0" title="Llamar${b.tutor ? " a " + esc(b.tutor) : ""}">📞</a>` : `<span class="text-[10px] text-amber-700 shrink-0">sin teléfono</span>`}
+        </div>`).join("");
+    }
 
-      // Hoja 3: Matriz de Asistencia
-      let headerCells = `
-        <Cell><Data ss:Type="String">Muchacho</Data></Cell>
-        <Cell><Data ss:Type="String">Grupo</Data></Cell>
-      `;
-      sessionDates.forEach(d => {
-        headerCells += `<Cell><Data ss:Type="String">${d}</Data></Cell>`;
-      });
-      headerCells += `
-        <Cell><Data ss:Type="String">Total Presentes</Data></Cell>
-        <Cell><Data ss:Type="String">% Asistencia</Data></Cell>
-      `;
-
-      let sheet3Rows = `<Row ss:StyleID="HeaderStyle">${headerCells}</Row>`;
-
+    function hobbyCounts() {
+      const counts = new Map(availableHobbies.map(h => [h, 0]));
+      boys.forEach(b => b.hobbies.forEach(h => {
+        const key = availableHobbies.find(c => fold(c) === fold(h)) || h;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }));
+      return [...counts.entries()].sort((a, b) => b[1] - a[1] || collator.compare(a[0], b[0]));
+    }
+    function renderHobbiesCloud() {
+      const el = document.getElementById("hobbiesCloud");
+      const entries = hobbyCounts();
+      document.getElementById("btnManageHobbies").innerText = manageHobbies ? "Hecho" : "Gestionar";
+      document.getElementById("hobbiesHint").innerText = manageHobbies
+        ? "Renombra (✏️) o borra (🗑) aficiones. Los cambios se aplican también a las fichas."
+        : "Toca una afición para ver quién la tiene (útil para preparar dinámicas).";
+      if (entries.length === 0) {
+        el.innerHTML = `<span class="text-xs text-slate-400">Sin aficiones todavía</span>`;
+        return;
+      }
+      if (manageHobbies) {
+        el.innerHTML = `<div class="w-full space-y-1">` + entries.map(([h, n]) => `
+          <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs">
+            <span>${esc(h)} <span class="text-slate-400">(${n})</span></span>
+            <span class="flex gap-1">
+              <button onclick="renameHobby(${jsArg(h)})" class="px-1.5 rounded hover:bg-white" title="Renombrar">✏️</button>
+              <button onclick="deleteHobby(${jsArg(h)})" class="px-1.5 rounded hover:bg-white" title="Borrar">🗑</button>
+            </span>
+          </div>`).join("") + `</div>`;
+      } else {
+        el.innerHTML = entries.map(([h, n]) => `
+          <button onclick="setHobbyFilter(${jsArg(h)})" ${n === 0 ? "disabled" : ""} class="${n ? "bg-indigo-50 border-indigo-100 text-indigo-700 active:scale-95" : "bg-slate-50 border-slate-100 text-slate-400"} border text-xs px-2.5 py-1 rounded-xl flex items-center space-x-1 transition">
+            <span>${esc(h)}</span><b class="${n ? "bg-indigo-200 text-indigo-800" : "bg-slate-200 text-slate-500"} text-[10px] px-1.5 rounded-full">${n}</b>
+          </button>`).join("");
+      }
+    }
+    function toggleManageHobbies() {
+      manageHobbies = !manageHobbies;
+      renderHobbiesCloud();
+    }
+    function renameHobby(oldName) {
+      const input = prompt(`Nuevo nombre para «${oldName}»:`, oldName);
+      if (input === null) return;
+      const newName = input.trim().replace(/\s+/g, " ");
+      if (!newName || newName === oldName) return;
+      const target = availableHobbies.find(h => fold(h) === fold(newName) && h !== oldName);
+      if (target && !confirm(`Ya existe «${target}». ¿Unir «${oldName}» con «${target}»?`)) return;
+      const finalName = target || newName;
+      availableHobbies = availableHobbies.filter(h => h !== oldName);
+      if (!target) availableHobbies.push(finalName);
       boys.forEach(b => {
-        let presents = 0;
-        let rowCells = `
-          <Cell><Data ss:Type="String">${escapeXml(b.name)}</Data></Cell>
-          <Cell><Data ss:Type="String">${escapeXml(b.role)}</Data></Cell>
-        `;
-
-        sessionDates.forEach(d => {
-          const isPresent = attendance[d] && attendance[d][b.id] === true;
-          const wasMarked = attendance[d] && attendance[d][b.id] !== undefined;
-          if (isPresent) presents++;
-
-          const val = isPresent ? "Presente" : (wasMarked ? "Falta" : "-");
-          const style = isPresent ? ` ss:StyleID="PresentStyle"` : (wasMarked ? ` ss:StyleID="AbsentStyle"` : "");
-          rowCells += `<Cell${style}><Data ss:Type="String">${val}</Data></Cell>`;
-        });
-
-        const pct = sessionDates.length > 0 ? Math.round((presents / sessionDates.length) * 100) + "%" : "100%";
-        rowCells += `
-          <Cell><Data ss:Type="Number">${presents}</Data></Cell>
-          <Cell><Data ss:Type="String">${pct}</Data></Cell>
-        `;
-
-        sheet3Rows += `<Row>${rowCells}</Row>`;
+        if (b.hobbies.some(h => fold(h) === fold(oldName))) {
+          b.hobbies = [...new Set(b.hobbies.map(h => fold(h) === fold(oldName) ? finalName : h))];
+        }
       });
+      if (hobbyFilter && fold(hobbyFilter) === fold(oldName)) hobbyFilter = finalName;
+      saveState();
+      renderList();
+      showToast("Afición actualizada");
+    }
+    function deleteHobby(name) {
+      const n = boys.filter(b => b.hobbies.some(h => fold(h) === fold(name))).length;
+      if (!confirm(n ? `¿Borrar «${name}»? Se quitará de ${n} ficha(s).` : `¿Borrar «${name}» de la lista?`)) return;
+      availableHobbies = availableHobbies.filter(h => fold(h) !== fold(name));
+      boys.forEach(b => { b.hobbies = b.hobbies.filter(h => fold(h) !== fold(name)); });
+      if (hobbyFilter && fold(hobbyFilter) === fold(name)) hobbyFilter = null;
+      saveState();
+      renderList();
+      showToast("Afición borrada");
+    }
 
-      const excelXml = `<?xml version="1.0" encoding="UTF-8"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
- <Styles>
-  <Style ss:ID="Default" ss:Name="Normal">
-   <Alignment ss:Vertical="Center"/>
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#1E293B"/>
-  </Style>
-  <Style ss:ID="HeaderStyle">
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-   <Borders>
-    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#4338CA"/>
-   </Borders>
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#4F46E5" ss:Pattern="Solid"/>
-  </Style>
-  <Style ss:ID="AlertStyle">
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#991B1B"/>
-   <Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/>
-  </Style>
-  <Style ss:ID="PresentStyle">
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#065F46"/>
-   <Interior ss:Color="#D1FAE5" ss:Pattern="Solid"/>
-  </Style>
-  <Style ss:ID="AbsentStyle">
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#991B1B"/>
-   <Interior ss:Color="#FFE4E6" ss:Pattern="Solid"/>
-  </Style>
- </Styles>
- <Worksheet ss:Name="1. Muchachos">
-  <Table>
-   <Column ss:Width="160"/>
-   <Column ss:Width="90"/>
-   <Column ss:Width="50"/>
-   <Column ss:Width="70"/>
-   <Column ss:Width="120"/>
-   <Column ss:Width="180"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="90"/>
-   <Column ss:Width="75"/>
-   ${sheet1Rows}
-  </Table>
- </Worksheet>
- <Worksheet ss:Name="2. Observaciones">
-  <Table>
-   <Column ss:Width="80"/>
-   <Column ss:Width="150"/>
-   <Column ss:Width="90"/>
-   <Column ss:Width="280"/>
-   ${sheet2Rows}
-  </Table>
- </Worksheet>
- <Worksheet ss:Name="3. Matriz Asistencia">
-  <Table>
-   <Column ss:Width="160"/>
-   <Column ss:Width="90"/>
-   ${sessionDates.map(() => '<Column ss:Width="85"/>').join('')}
-   <Column ss:Width="90"/>
-   <Column ss:Width="75"/>
-   ${sheet3Rows}
-  </Table>
- </Worksheet>
-</Workbook>`;
+    function renderBackupInfo() {
+      const lb = meta.lastBackup;
+      document.getElementById("lastBackupLabel").innerText = lb
+        ? `Última: ${fmtDate(localDateFromMs(lb))}`
+        : "Nunca";
+      renderLastSave("excel", "lastExcelSave", "Excel");
+      renderLastSave("json", "lastJsonSave", "copia");
+      const undo = load(KEYS.undo, null);
+      document.getElementById("undoBox").innerHTML = undo ? `
+        <button onclick="undoLast()" class="w-full text-[11px] text-slate-600 bg-white border border-dashed border-slate-300 rounded-xl py-1.5">
+          ↩ Deshacer: ${esc(undo.reason)} (${esc(fmtDate(localDateFromMs(undo.at)))})
+        </button>` : "";
+    }
+    function localDateFromMs(ms) {
+      const d = new Date(ms);
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+    // ---- Guardar archivos preguntando la ubicación ----
+    const CAN_PICK_LOCATION = typeof window.showSaveFilePicker === "function";
+    const FILE_TYPES = {
+      excel: { description: "Libro de Excel", accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"] } },
+      json: { description: "Copia de seguridad (JSON)", accept: { "application/json": [".json"] } }
+    };
 
-      const blob = new Blob([excelXml], { type: "application/vnd.ms-excel;charset=utf-8" });
+    function renderLastSave(kind, elId, label) {
+      const el = document.getElementById(elId);
+      const last = (meta.lastSaves || {})[kind];
+      const when = last ? `${fmtDate(localDateFromMs(last.at))} ${new Date(last.at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}` : "";
+      let txt;
+      if (CAN_PICK_LOCATION) {
+        txt = last
+          ? `📁 Última ${label === "Excel" ? "exportación" : "copia"}: <b>${esc(last.name)}</b> (${esc(when)}). Al guardar se te preguntará dónde, empezando en esa misma carpeta.`
+          : `📁 Al guardar se te preguntará en qué carpeta y con qué nombre.`;
+      } else {
+        txt = (last ? `📁 Último archivo: <b>${esc(last.name)}</b> (${esc(when)}). ` : "📁 ") +
+          `Este navegador no permite elegir carpeta desde la página: el archivo irá a «Descargas», salvo que en sus ajustes tengas activado «Preguntar dónde guardar cada archivo».`;
+      }
+      el.innerHTML = txt;
+    }
+
+    // Devuelve "saved", "downloaded" o "cancelled"
+    async function saveFile(blob, suggestedName, kind) {
+      if (CAN_PICK_LOCATION) {
+        try {
+          // "id" hace que el navegador recuerde la última carpeta usada para este tipo de archivo
+          const handle = await window.showSaveFilePicker({ suggestedName, id: `catequesis-${kind}`, types: [FILE_TYPES[kind]] });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          rememberSave(kind, handle.name);
+          return "saved";
+        } catch (err) {
+          if (err && err.name === "AbortError") return "cancelled";
+          console.warn("No se pudo usar el selector de ubicación; se descarga normalmente.", err);
+        }
+      }
+      downloadBlob(blob, suggestedName);
+      rememberSave(kind, suggestedName);
+      return "downloaded";
+    }
+    function rememberSave(kind, name) {
+      meta.lastSaves = meta.lastSaves || {};
+      meta.lastSaves[kind] = { name, at: Date.now() };
+      saveMeta();
+    }
+
+    function markBackupDone() {
+      meta.lastBackup = Date.now();
+      meta.snoozeBackupUntil = 0;
+      saveMeta();
+      renderBackupInfo();
+      renderBackupBanner();
+    }
+
+    function undoLast() {
+      const undo = load(KEYS.undo, null);
+      if (!undo) return;
+      if (!confirm(`¿Deshacer «${undo.reason}»? Se volverá a los datos que había antes (${(undo.boys || []).length} muchachos). Los cambios hechos después se perderán.`)) return;
+      boys = dedupeIds((undo.boys || []).map(normalizeBoy).filter(Boolean));
+      attendance = normalizeAttendance(undo.attendance, new Set(boys.map(b => b.id)));
+      availableHobbies = Array.isArray(undo.hobbies) ? undo.hobbies.slice() : DEFAULT_HOBBIES.slice();
+      boys.forEach(b => mergeHobbyCatalog(availableHobbies, b.hobbies));
+      localStorage.removeItem(KEYS.undo);
+      saveState();
+      refreshAll();
+      showToast("Cambios deshechos");
+    }
+
+    // =========================================================================
+    // COPIA DE SEGURIDAD JSON
+    // =========================================================================
+    function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `catequesis_parroquia_${today}.xls`;
+      a.download = filename;
+      document.body.appendChild(a);
       a.click();
-      showToast("Descargando libro Excel...");
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
     }
-
-    // =========================================================================
-    // IMPORTACIÓN DESDE EXCEL (.XLS / .XLSX / .XML)
-    // =========================================================================
-    function handleExcelImport(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-
-      if (window.XLSX && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
-        reader.onload = function(e) {
-          try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            processWorkbookJson(workbook);
-          } catch(err) {
-            console.warn("Fallo lectura binaria XLSX, intentando modo texto...", err);
-            readAsXmlText(file);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      } else {
-        readAsXmlText(file);
-      }
-
-      event.target.value = "";
-    }
-
-    function readAsXmlText(file) {
-      const textReader = new FileReader();
-      textReader.onload = function(e) {
-        try {
-          processSpreadsheetXml(e.target.result);
-        } catch(err) {
-          alert("No se pudo leer el archivo. Asegúrate de subir el archivo .xls o .xml exportado por la app.");
-          console.error(err);
-        }
-      };
-      textReader.readAsText(file);
-    }
-
-    function processSpreadsheetXml(xmlText) {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-      const worksheets = Array.from(xmlDoc.getElementsByTagName("Worksheet"));
-
-      if (worksheets.length === 0) {
-        alert("El archivo no contiene hojas válidas de Excel.");
-        return;
-      }
-
-      const wsMuchachos = worksheets.find(w => (w.getAttribute("ss:Name") || w.getAttribute("Name") || "").includes("Muchachos")) || worksheets[0];
-      const wsObservaciones = worksheets.find(w => (w.getAttribute("ss:Name") || w.getAttribute("Name") || "").includes("Observaciones"));
-      const wsAsistencia = worksheets.find(w => (w.getAttribute("ss:Name") || w.getAttribute("Name") || "").includes("Asistencia"));
-
-      const muchachosRows = Array.from(wsMuchachos.getElementsByTagName("Row"));
-      if (muchachosRows.length <= 1) {
-        alert("No hay registros en la hoja de Muchachos.");
-        return;
-      }
-
-      const importedBoysMap = new Map();
-      const newBoysList = [];
-
-      for (let i = 1; i < muchachosRows.length; i++) {
-        const cells = Array.from(muchachosRows[i].getElementsByTagName("Cell"));
-        const rowVals = cells.map(c => (c.querySelector("Data") ? c.querySelector("Data").textContent.trim() : ""));
-        
-        const name = rowVals[0];
-        if (!name) continue;
-
-        const role = rowVals[1] || "Confirmación";
-        const age = parseInt(rowVals[2]) || null;
-        const siblings = parseInt(rowVals[3]) || 0;
-        let phone = rowVals[4] || "";
-        if (phone.includes("FALTA TELÉFONO")) phone = "";
-
-        const hobbiesStr = rowVals[5] || "";
-        const hobbies = hobbiesStr ? hobbiesStr.split(",").map(h => h.trim()).filter(Boolean) : [];
-        
-        hobbies.forEach(h => {
-          if (!availableHobbies.includes(h)) availableHobbies.push(h);
-        });
-
-        const existing = boys.find(b => b.name.toLowerCase() === name.toLowerCase());
-        const id = existing ? existing.id : ("boy-" + Date.now() + "-" + i);
-        const prevObs = existing ? (existing.observations || []) : [];
-
-        const boyObj = {
-          id,
-          name,
-          role,
-          age,
-          siblings,
-          phone,
-          hobbies,
-          observations: prevObs
-        };
-
-        importedBoysMap.set(name.toLowerCase(), boyObj);
-        newBoysList.push(boyObj);
-      }
-
-      if (wsObservaciones) {
-        const obsRows = Array.from(wsObservaciones.getElementsByTagName("Row"));
-        newBoysList.forEach(b => b.observations = []);
-
-        for (let i = 1; i < obsRows.length; i++) {
-          const cells = Array.from(obsRows[i].getElementsByTagName("Cell"));
-          const rowVals = cells.map(c => (c.querySelector("Data") ? c.querySelector("Data").textContent.trim() : ""));
-          
-          const date = rowVals[0];
-          const boyName = (rowVals[1] || "").toLowerCase();
-          const obsText = rowVals[3];
-
-          if (date && date !== "-" && obsText && importedBoysMap.has(boyName)) {
-            const boy = importedBoysMap.get(boyName);
-            boy.observations.push({
-              id: "obs-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
-              date: date,
-              text: obsText
-            });
-          }
-        }
-      }
-
-      const newAttendance = {};
-      if (wsAsistencia) {
-        const astRows = Array.from(wsAsistencia.getElementsByTagName("Row"));
-        if (astRows.length > 0) {
-          const headerCells = Array.from(astRows[0].getElementsByTagName("Cell"));
-          const headerVals = headerCells.map(c => (c.querySelector("Data") ? c.querySelector("Data").textContent.trim() : ""));
-
-          const dateCols = [];
-          for (let c = 2; c < headerVals.length; c++) {
-            const val = headerVals[c];
-            if (val.match(/^\d{4}-\d{2}-\d{2}$/)) {
-              dateCols.push({ colIndex: c, date: val });
-              if (!newAttendance[val]) newAttendance[val] = {};
-            }
-          }
-
-          for (let i = 1; i < astRows.length; i++) {
-            const cells = Array.from(astRows[i].getElementsByTagName("Cell"));
-            const rowVals = cells.map(c => (c.querySelector("Data") ? c.querySelector("Data").textContent.trim() : ""));
-            const boyName = (rowVals[0] || "").toLowerCase();
-
-            if (importedBoysMap.has(boyName)) {
-              const boy = importedBoysMap.get(boyName);
-              dateCols.forEach(({ colIndex, date }) => {
-                const mark = rowVals[colIndex];
-                if (mark === "Presente") {
-                  newAttendance[date][boy.id] = true;
-                } else if (mark === "Falta") {
-                  newAttendance[date][boy.id] = false;
-                }
-              });
-            }
-          }
-        }
-      }
-
-      boys = newBoysList;
-      if (Object.keys(newAttendance).length > 0) {
-        attendance = newAttendance;
-      }
-
-      saveState();
-      renderList();
-      renderAttendance();
-      updateStats();
-
-      showToast(`¡Excel cargado! ${boys.length} muchachos sincronizados`);
-      alert(`✅ Carga completada con éxito:\n- ${boys.length} muchachos registrados/actualizados.\n- Observaciones e historial de asistencia sincronizados.`);
-    }
-
-    function processWorkbookJson(workbook) {
-      const sheetName = workbook.SheetNames.find(n => n.includes("Muchachos")) || workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const rawData = XLSX.utils.sheet_to_json(sheet);
-
-      if (!rawData || rawData.length === 0) {
-        alert("No se encontraron registros en el archivo.");
-        return;
-      }
-
-      const newBoysList = [];
-      const importedMap = new Map();
-
-      rawData.forEach((row, i) => {
-        const name = row["Nombre y Apellidos"] || row["Nombre"] || Object.values(row)[0];
-        if (!name) return;
-
-        const role = row["Grupo"] || "Confirmación";
-        const age = parseInt(row["Edad"]) || null;
-        const siblings = parseInt(row["Nº Hermanos"]) || 0;
-        let phone = String(row["Teléfono Contacto"] || row["Teléfono"] || "");
-        if (phone.includes("FALTA TELÉFONO")) phone = "";
-
-        const hobbiesStr = row["Aficiones"] || "";
-        const hobbies = typeof hobbiesStr === 'string' ? hobbiesStr.split(",").map(h => h.trim()).filter(Boolean) : [];
-        hobbies.forEach(h => {
-          if (!availableHobbies.includes(h)) availableHobbies.push(h);
-        });
-
-        const existing = boys.find(b => b.name.toLowerCase() === name.toLowerCase());
-        const id = existing ? existing.id : ("boy-" + Date.now() + "-" + i);
-
-        const boyObj = {
-          id,
-          name,
-          role,
-          age,
-          siblings,
-          phone,
-          hobbies,
-          observations: []
-        };
-
-        importedMap.set(name.toLowerCase(), boyObj);
-        newBoysList.push(boyObj);
-      });
-
-      const obsSheetName = workbook.SheetNames.find(n => n.includes("Observaciones"));
-      if (obsSheetName) {
-        const obsData = XLSX.utils.sheet_to_json(workbook.Sheets[obsSheetName]);
-        obsData.forEach(row => {
-          const date = row["Fecha"];
-          const boyName = (row["Muchacho"] || "").toLowerCase();
-          const text = row["Observación / Nota de Evolución"] || row["Observación"];
-
-          if (date && date !== "-" && text && importedMap.has(boyName)) {
-            importedMap.get(boyName).observations.push({
-              id: "obs-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
-              date: String(date),
-              text: String(text)
-            });
-          }
-        });
-      }
-
-      boys = newBoysList;
-      saveState();
-      renderList();
-      renderAttendance();
-      updateStats();
-
-      showToast(`¡Excel cargado! ${boys.length} muchachos sincronizados`);
-      alert(`✅ Carga completada:\n${boys.length} muchachos cargados desde Excel.`);
-    }
-
-    function escapeXml(unsafe) {
-      if (!unsafe) return "";
-      return unsafe.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&apos;");
-    }
-
-    function exportData() {
+    async function exportData() {
       const payload = {
+        app: "catequesis",
+        version: 2,
         fechaExportacion: new Date().toISOString(),
         muchachos: boys,
         aficionesDisponibles: availableHobbies,
         asistencias: attendance
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `catequesis_respaldo_${today}.json`;
-      a.click();
+      const result = await saveFile(blob, `catequesis_copia_${todayISO()}.json`, "json");
+      if (result === "cancelled") { showToast("Copia cancelada"); return; }
+      markBackupDone();
+      showToast(result === "saved" ? "Copia de seguridad guardada" : "Copia de seguridad descargada");
+    }
+    function handleJsonRestore(event) {
+      const file = event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        let data;
+        try { data = JSON.parse(e.target.result); } catch (err) {
+          alert("El archivo no es una copia de seguridad válida.");
+          return;
+        }
+        const list = Array.isArray(data) ? data : data.muchachos;
+        if (!Array.isArray(list)) { alert("El archivo no contiene una lista de muchachos."); return; }
+        const newBoys = dedupeIds(list.map(normalizeBoy).filter(Boolean));
+        const newAtt = normalizeAttendance(data.asistencias || {}, new Set(newBoys.map(b => b.id)));
+        const fecha = data.fechaExportacion ? ` del ${fmtDate(localDateFromMs(Date.parse(data.fechaExportacion)))}` : "";
+        if (!confirm(`Restaurar la copia${fecha}: ${newBoys.length} muchachos y ${Object.keys(newAtt).length} sesiones.\n\nSe sustituirán TODOS los datos actuales (${boys.length} muchachos). ¿Continuar?`)) return;
+        snapshot("restaurar copia");
+        boys = newBoys;
+        attendance = newAtt;
+        availableHobbies = mergeHobbyCatalog([], (Array.isArray(data.aficionesDisponibles) ? data.aficionesDisponibles : DEFAULT_HOBBIES).map(String).filter(Boolean));
+        boys.forEach(b => mergeHobbyCatalog(availableHobbies, b.hobbies));
+        saveState();
+        refreshAll();
+        showToast("Copia restaurada");
+      };
+      reader.readAsText(file);
     }
 
-    function resetDemoData() {
-      if (confirm("¿Restablecer datos de ejemplo? Se sobrescribirá lo actual.")) {
-        boys = INITIAL_BOYS;
-        attendance = {
-          "2026-10-15": { "1": true, "2": true, "3": false, "4": true },
-          "2026-10-22": { "1": true, "2": true, "3": true, "4": true },
-          "2026-11-05": { "1": true, "2": false, "3": true, "4": false }
-        };
-        availableHobbies = DEFAULT_HOBBIES;
-        saveState();
-        renderList();
-        renderAttendance();
-        updateStats();
-        showToast("Datos demo restablecidos");
+    // =========================================================================
+    // DATOS DE EJEMPLO / BORRAR TODO
+    // =========================================================================
+    function demoData() {
+      return {
+        boys: [
+          { id: "demo-1", name: "Mateo Fernández Gómez", role: "Confirmación", age: 14, siblings: 2, phone: "+34611223344", tutor: "Ana Gómez (madre)",
+            hobbies: ["Fútbol", "Videojuegos"],
+            observations: [
+              { id: "obs-d1", date: "2026-10-15", text: "Muy participativo en la dinámica sobre el Credo." },
+              { id: "obs-d2", date: "2026-11-05", text: "Confirmó que asistirá a la convivencia del próximo mes." }
+            ] },
+          { id: "demo-2", name: "Sofía Ruiz Navarro", role: "Monaguillo", age: 11, siblings: 1, phone: "", tutor: "",
+            hobbies: ["Pintar / Dibujar", "Lectura", "Música / Guitarra"],
+            observations: [{ id: "obs-d3", date: "2026-10-20", text: "Ha aprendido bien el orden de los vasos sagrados en el altar." }] },
+          { id: "demo-3", name: "Javier Sánchez Díaz", role: "Ambos", age: 13, siblings: 3, phone: "633445566", tutor: "Luis Sánchez (padre)",
+            hobbies: ["Baloncesto", "Ciclismo"], observations: [] },
+          { id: "demo-4", name: "Elena Martín Vega", role: "Confirmación", age: 15, siblings: 0, phone: "", tutor: "Carmen Vega (madre)",
+            hobbies: ["Teatro", "Pintar / Dibujar"],
+            observations: [{ id: "obs-d4", date: "2026-11-01", text: "Pendiente pedir teléfono de contacto a su madre en la próxima sesión." }] }
+        ],
+        attendance: {
+          "2026-10-15": { "demo-1": true, "demo-2": true, "demo-3": false, "demo-4": true },
+          "2026-10-22": { "demo-1": true, "demo-2": true, "demo-3": false, "demo-4": true },
+          "2026-11-05": { "demo-1": true, "demo-2": false, "demo-3": true, "demo-4": false }
+        }
+      };
+    }
+    function loadDemoData() {
+      if (!confirm("¿Cargar los datos de ejemplo? Sustituirán los datos actuales (podrás deshacerlo).")) return;
+      snapshot("cargar datos de ejemplo");
+      const d = demoData();
+      boys = d.boys.map(normalizeBoy);
+      attendance = normalizeAttendance(d.attendance);
+      availableHobbies = DEFAULT_HOBBIES.slice();
+      saveState();
+      refreshAll();
+      showToast("Datos de ejemplo cargados");
+    }
+    function deleteAllData() {
+      const answer = prompt(`Se borrarán ${boys.length} muchachos, sus observaciones y toda la asistencia.\nEscribe BORRAR para confirmar:`);
+      if (answer === null) return;
+      if (answer.trim().toUpperCase() !== "BORRAR") { alert("No se ha borrado nada."); return; }
+      snapshot("borrar todos los datos");
+      boys = [];
+      attendance = {};
+      availableHobbies = DEFAULT_HOBBIES.slice();
+      expandedObs.clear();
+      saveState();
+      refreshAll();
+      showToast("Datos borrados");
+    }
+
+    // =========================================================================
+    // EXCEL: EXPORTAR (.xlsx)
+    // =========================================================================
+    const SHEETS = { boys: "Muchachos", obs: "Observaciones", att: "Asistencia", hobbies: "Aficiones", help: "Instrucciones" };
+    const BOY_HEADERS = ["ID", "Nombre y Apellidos", "Grupo", "Edad", "Nº Hermanos", "Teléfono", "Tutor", "Aficiones",
+      "Nº Observaciones", "Sesiones", "Asistencias", "% Asistencia"];
+
+    function setCellFormat(ws, r, c, patch) {
+      const ref = XLSX.utils.encode_cell({ r, c });
+      if (ws[ref]) Object.assign(ws[ref], patch);
+    }
+
+    function buildWorkbook() {
+      const wb = XLSX.utils.book_new();
+      const dates = sessionDates();
+      const list = sortedBoys();
+
+      // 1. Muchachos
+      const boyRows = list.map(b => {
+        const s = boyStats(b.id);
+        return [b.id, b.name, b.role, b.age ?? "", b.siblings ?? "", b.phone, b.tutor, b.hobbies.join(", "),
+          b.observations.length, s.sessions, s.present, s.pct === null ? "" : s.pct / 100];
+      });
+      const ws1 = XLSX.utils.aoa_to_sheet([BOY_HEADERS, ...boyRows]);
+      boyRows.forEach((row, i) => {
+        setCellFormat(ws1, i + 1, 0, { t: "s", z: "@" });
+        setCellFormat(ws1, i + 1, 5, { t: "s", z: "@" });
+        if (row[11] !== "") setCellFormat(ws1, i + 1, 11, { z: "0%" });
+      });
+      ws1["!cols"] = [{ wch: 18 }, { wch: 28 }, { wch: 13 }, { wch: 6 }, { wch: 11 }, { wch: 15 }, { wch: 22 }, { wch: 32 },
+        { wch: 15 }, { wch: 9 }, { wch: 11 }, { wch: 12 }];
+      ws1["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: boyRows.length, c: BOY_HEADERS.length - 1 } }) };
+      XLSX.utils.book_append_sheet(wb, ws1, SHEETS.boys);
+
+      // 2. Observaciones
+      const obsRows = [];
+      list.forEach(b => sortedObs(b.observations).forEach(o => obsRows.push([o.id, b.id, b.name, isoToSerial(o.date), o.text])));
+      const ws2 = XLSX.utils.aoa_to_sheet([["ID Observación", "ID Muchacho", "Muchacho", "Fecha", "Observación"], ...obsRows]);
+      obsRows.forEach((_, i) => {
+        setCellFormat(ws2, i + 1, 0, { t: "s", z: "@" });
+        setCellFormat(ws2, i + 1, 1, { t: "s", z: "@" });
+        setCellFormat(ws2, i + 1, 3, { t: "n", z: "dd/mm/yyyy" });
+      });
+      ws2["!cols"] = [{ wch: 18 }, { wch: 18 }, { wch: 28 }, { wch: 12 }, { wch: 70 }];
+      XLSX.utils.book_append_sheet(wb, ws2, SHEETS.obs);
+
+      // 3. Asistencia (P = presente, F = falta, vacío = sin marcar)
+      const attHead = ["ID", "Muchacho", "Grupo", ...dates.map(isoToSerial), "Asistencias", "% Asistencia"];
+      const attRows = list.map(b => {
+        const s = boyStats(b.id);
+        return [b.id, b.name, b.role,
+          ...dates.map(d => attendance[d][b.id] === true ? "P" : attendance[d][b.id] === false ? "F" : ""),
+          s.present, s.pct === null ? "" : s.pct / 100];
+      });
+      const ws3 = XLSX.utils.aoa_to_sheet([attHead, ...attRows]);
+      dates.forEach((_, j) => setCellFormat(ws3, 0, 3 + j, { t: "n", z: "dd/mm/yyyy" }));
+      attRows.forEach((row, i) => {
+        setCellFormat(ws3, i + 1, 0, { t: "s", z: "@" });
+        if (row[row.length - 1] !== "") setCellFormat(ws3, i + 1, row.length - 1, { z: "0%" });
+      });
+      ws3["!cols"] = [{ wch: 18 }, { wch: 28 }, { wch: 13 }, ...dates.map(() => ({ wch: 11 })), { wch: 11 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, ws3, SHEETS.att);
+
+      // 4. Aficiones
+      const ws4 = XLSX.utils.aoa_to_sheet([["Afición", "Nº muchachos"], ...hobbyCounts()]);
+      ws4["!cols"] = [{ wch: 26 }, { wch: 13 }];
+      XLSX.utils.book_append_sheet(wb, ws4, SHEETS.hobbies);
+
+      // 5. Instrucciones
+      const help = [
+        ["Cómo editar este Excel y volver a cargarlo en la app"],
+        [""],
+        ["• No cambies ni borres la columna ID: es la que permite reconocer a cada muchacho aunque corrijas su nombre."],
+        ["• Para dar de alta a alguien nuevo, añade una fila en «Muchachos» y deja el ID vacío."],
+        ["• Grupo: Confirmación, Monaguillo o Ambos."],
+        ["• Aficiones: sepáralas con comas. Las nuevas se añadirán a la lista de la app."],
+        ["• Observaciones: una fila por observación. Para añadir una, rellena Muchacho (o su ID), Fecha y Observación."],
+        ["• Asistencia: P = presente, F = falta, vacío = sin marcar. Puedes añadir una columna con una fecha nueva en la cabecera."],
+        ["• Las columnas Nº Observaciones, Sesiones, Asistencias y % Asistencia se calculan solas: lo que escribas en ellas se ignora."],
+        ["• Si borras una fila de «Muchachos», al cargar el Excel la app te preguntará si quieres eliminarlo."],
+        ["• Al cargar, la app enseña un resumen de cambios antes de aplicarlos, y se puede deshacer."],
+        [""],
+        [`Exportado el ${fmtDate(todayISO())}`]
+      ];
+      const ws5 = XLSX.utils.aoa_to_sheet(help);
+      ws5["!cols"] = [{ wch: 110 }];
+      XLSX.utils.book_append_sheet(wb, ws5, SHEETS.help);
+
+      return wb;
+    }
+
+    async function exportToExcel() {
+      if (!window.XLSX) { alert("No se pudo cargar el módulo de Excel. Comprueba la conexión a internet y recarga la página."); return; }
+      try {
+        const data = XLSX.write(buildWorkbook(), { type: "array", bookType: "xlsx", compression: true });
+        const blob = new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const result = await saveFile(blob, `catequesis_${todayISO()}.xlsx`, "excel");
+        if (result === "cancelled") { showToast("Exportación cancelada"); return; }
+        markBackupDone();
+        showToast(result === "saved" ? "Excel guardado" : "Descargando Excel...");
+      } catch (err) {
+        console.error(err);
+        alert("No se pudo generar el Excel: " + err.message);
       }
+    }
+
+    // =========================================================================
+    // EXCEL: IMPORTAR (con vista previa)
+    // =========================================================================
+    function handleExcelImport(event) {
+      const file = event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      if (!window.XLSX) { alert("No se pudo cargar el módulo de Excel. Comprueba la conexión a internet y recarga la página."); return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+          pendingImport = planImport(wb);
+          showImportPreview(file.name);
+        } catch (err) {
+          console.error(err);
+          alert("No se pudo leer el Excel.\n\n" + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function sheetRows(wb, test) {
+      const name = wb.SheetNames.find(n => test(fold(n)));
+      if (!name) return null;
+      return XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: "", blankrows: false });
+    }
+    // Busca la columna por nombre exacto (sin tildes) o, si no, por contenido
+    function findCol(header, exact, partial = [], exclude = []) {
+      const h = header.map(fold);
+      let i = h.findIndex(x => exact.includes(x));
+      if (i === -1 && partial.length) i = h.findIndex(x => partial.some(p => x.includes(p)) && !exclude.some(ex => x.startsWith(ex)));
+      return i;
+    }
+    function cellStr(row, i) {
+      if (i < 0) return undefined;
+      const v = row[i];
+      return v === undefined || v === null ? "" : String(v).trim();
+    }
+    function parseMark(v) {
+      const f = fold(v);
+      if (["p", "presente", "x", "si", "1", "true", "✓"].includes(f)) return true;
+      if (["f", "falta", "a", "ausente", "no", "0", "false", "✕"].includes(f)) return false;
+      return undefined;
+    }
+
+    function planImport(wb) {
+      const warnings = [];
+      let mRows = sheetRows(wb, n => n.includes("muchachos"));
+      if (!mRows) {
+        const first = wb.SheetNames[0];
+        mRows = first ? XLSX.utils.sheet_to_json(wb.Sheets[first], { header: 1, raw: true, defval: "", blankrows: false }) : null;
+      }
+      if (!mRows || mRows.length === 0) throw new Error("No se encontró la hoja «Muchachos».");
+
+      // Cabecera: primera fila que contenga una columna de nombre
+      const NAME_ALIASES = ["nombre y apellidos", "nombre", "muchacho", "alumno", "nombre completo"];
+      let hIdx = mRows.slice(0, 10).findIndex(r => findCol(r, NAME_ALIASES) > -1);
+      if (hIdx === -1) throw new Error("La hoja «Muchachos» no tiene una columna «Nombre y Apellidos».");
+      const header = mRows[hIdx];
+      const col = {
+        id: findCol(header, ["id"]),
+        name: findCol(header, NAME_ALIASES),
+        role: findCol(header, ["grupo", "rol", "grupo / rol"], ["grupo"]),
+        age: findCol(header, ["edad"], ["edad"]),
+        siblings: findCol(header, ["nº hermanos", "n hermanos", "no hermanos", "hermanos", "n.º hermanos"], ["hermanos"]),
+        phone: findCol(header, ["telefono", "telefono contacto", "movil"], ["telefono", "movil"]),
+        tutor: findCol(header, ["tutor", "nombre del tutor", "tutor/a"], ["tutor"]),
+        hobbies: findCol(header, ["aficiones"], ["aficion"])
+      };
+
+      const byId = new Map(boys.map(b => [b.id, b]));
+      const byName = new Map();
+      boys.forEach(b => { if (!byName.has(fold(b.name))) byName.set(fold(b.name), b); });
+      const usedExisting = new Set();
+      const usedIds = new Set();
+      const hobbyCatalog = availableHobbies.slice();
+      const entries = [];
+
+      mRows.slice(hIdx + 1).forEach((row, k) => {
+        const rowNum = hIdx + k + 2;
+        const name = cellStr(row, col.name).replace(/\s+/g, " ");
+        if (!name) {
+          if (row.some(v => String(v).trim() !== "")) warnings.push(`Fila ${rowNum} de «Muchachos» sin nombre: se ignora.`);
+          return;
+        }
+        const rid = cellStr(row, col.id) || "";
+        let ex = null;
+        if (rid && byId.has(rid) && !usedExisting.has(rid)) ex = byId.get(rid);
+        else if (!rid || !byId.has(rid)) {
+          const c = byName.get(fold(name));
+          if (c && !usedExisting.has(c.id)) ex = c;
+        }
+        if (ex) usedExisting.add(ex.id);
+
+        let id = ex ? ex.id : (rid && !byId.has(rid) && !usedIds.has(rid) ? rid : uid("m"));
+        while (usedIds.has(id)) id = uid("m");
+        usedIds.add(id);
+
+        const roleRaw = cellStr(row, col.role);
+        let role = parseRole(roleRaw);
+        if (!role) {
+          if (roleRaw) warnings.push(`Grupo «${roleRaw}» no reconocido para ${name}: se mantiene ${ex ? ex.role : "Confirmación"}.`);
+          role = ex ? ex.role : "Confirmación";
+        }
+
+        let hobbies;
+        if (col.hobbies < 0) hobbies = ex ? ex.hobbies.slice() : [];
+        else {
+          hobbies = cellStr(row, col.hobbies).split(/[,;]/).map(h => h.trim().replace(/\s+/g, " ")).filter(Boolean).map(h => {
+            const known = hobbyCatalog.find(c => fold(c) === fold(h));
+            if (known) return known;
+            hobbyCatalog.push(h);
+            return h;
+          });
+          hobbies = [...new Set(hobbies)];
+        }
+
+        const pick = (key, parse, fallback) => col[key] < 0 ? (ex ? ex[key] : fallback) : parse(row[col[key]]);
+        const boy = {
+          id, name, role,
+          age: pick("age", toIntOrNull, null),
+          siblings: pick("siblings", v => toIntOrNull(v) ?? 0, 0),
+          phone: pick("phone", v => String(v ?? "").trim().replace(/^'/, "").replace(/⚠️\s*FALTA TELÉFONO/i, "").trim(), ""),
+          tutor: pick("tutor", v => String(v ?? "").trim(), ""),
+          hobbies,
+          observations: ex ? ex.observations.map(o => ({ ...o })) : []
+        };
+        entries.push({ boy, ex });
+      });
+
+      if (entries.length === 0) throw new Error("La hoja «Muchachos» no contiene ningún nombre.");
+
+      const entryById = new Map(entries.map(e => [e.boy.id, e]));
+      const entryByName = new Map();
+      entries.forEach(e => { if (!entryByName.has(fold(e.boy.name))) entryByName.set(fold(e.boy.name), e); });
+      const resolve = (idVal, nameVal) => (idVal && entryById.get(idVal)) || (nameVal && entryByName.get(fold(nameVal))) || null;
+
+      // Observaciones
+      let obsSheet = false;
+      const oRows = sheetRows(wb, n => n.includes("observaciones"));
+      if (oRows && oRows.length > 0) {
+        const oh = oRows[0];
+        const oc = {
+          id: findCol(oh, ["id observacion", "id obs"]),
+          boyId: findCol(oh, ["id muchacho"]),
+          name: findCol(oh, ["muchacho", "nombre", "nombre y apellidos", "alumno"]),
+          date: findCol(oh, ["fecha"], ["fecha"]),
+          text: findCol(oh, ["observacion", "observacion / nota de evolucion", "nota", "texto"], ["observacion", "nota"], ["id", "nº", "total"])
+        };
+        if (oc.text > -1 && (oc.name > -1 || oc.boyId > -1)) {
+          obsSheet = true;
+          entries.forEach(e => { e.boy.observations = []; });
+          const usedObsIds = new Set();
+          oRows.slice(1).forEach((row, k) => {
+            const text = cellStr(row, oc.text);
+            if (!text || text === "-") return;
+            const target = resolve(cellStr(row, oc.boyId), cellStr(row, oc.name));
+            if (!target) {
+              const who = cellStr(row, oc.name) || cellStr(row, oc.boyId);
+              if (who && fold(who) !== "sin observaciones registradas") warnings.push(`Observación de la fila ${k + 2}: «${who}» no está en la hoja «Muchachos». Se ignora.`);
+              return;
+            }
+            let date = oc.date > -1 ? parseDateAny(row[oc.date]) : null;
+            if (!date) {
+              warnings.push(`Observación de ${target.boy.name} (fila ${k + 2}) sin fecha válida: se pone la de hoy.`);
+              date = todayISO();
+            }
+            let oid = cellStr(row, oc.id);
+            if (!oid || usedObsIds.has(oid)) oid = uid("obs");
+            usedObsIds.add(oid);
+            target.boy.observations.push({ id: oid, date, text });
+          });
+        }
+      }
+
+      // Asistencia
+      const newAtt = JSON.parse(JSON.stringify(attendance));
+      let attSheet = false;
+      const aRows = sheetRows(wb, n => n.includes("asistencia"));
+      if (aRows && aRows.length > 0) {
+        const ah = aRows[0];
+        const ac = {
+          id: findCol(ah, ["id"]),
+          name: findCol(ah, ["muchacho", "nombre", "nombre y apellidos", "alumno"])
+        };
+        const dateCols = [];
+        ah.forEach((v, i) => {
+          if (i === ac.id || i === ac.name) return;
+          const f = fold(v);
+          if (["grupo", "asistencias", "% asistencia", "total presentes", "sesiones"].includes(f)) return;
+          const d = parseDateAny(v);
+          if (d) dateCols.push({ i, d });
+        });
+        if (ac.name > -1 || ac.id > -1) {
+          attSheet = true;
+          aRows.slice(1).forEach(row => {
+            const target = resolve(cellStr(row, ac.id), cellStr(row, ac.name));
+            if (!target) return;
+            const id = target.boy.id;
+            // La fila del Excel manda: se rehace la asistencia de este muchacho
+            Object.keys(newAtt).forEach(d => { delete newAtt[d][id]; });
+            dateCols.forEach(({ i, d }) => {
+              const m = parseMark(row[i]);
+              if (m !== undefined) (newAtt[d] = newAtt[d] || {})[id] = m;
+            });
+          });
+        }
+      }
+      Object.keys(newAtt).forEach(d => { if (Object.keys(newAtt[d]).length === 0) delete newAtt[d]; });
+
+      // Catálogo de aficiones desde la hoja «Aficiones»
+      const hRows = sheetRows(wb, n => n.includes("aficiones"));
+      if (hRows) hRows.slice(1).forEach(r => {
+        const h = String(r[0] ?? "").trim();
+        if (h && !hobbyCatalog.some(c => fold(c) === fold(h))) hobbyCatalog.push(h);
+      });
+
+      // Clasificar cambios
+      const fields = ["name", "role", "age", "siblings", "phone", "tutor"];
+      const created = [], modified = [], same = [];
+      entries.forEach(e => {
+        if (!e.ex) { created.push(e); return; }
+        const changes = [];
+        fields.forEach(f => { if ((e.ex[f] ?? "") !== (e.boy[f] ?? "")) changes.push(f); });
+        if ([...e.ex.hobbies].sort().join("|") !== [...e.boy.hobbies].sort().join("|")) changes.push("hobbies");
+        const obsKey = list => sortedObs(list).map(o => o.date + "§" + o.text).join("¶");
+        if (obsKey(e.ex.observations) !== obsKey(e.boy.observations)) changes.push("observations");
+        e.changes = changes;
+        (changes.length ? modified : same).push(e);
+      });
+      const missing = boys.filter(b => !usedExisting.has(b.id));
+
+      // Cambios de asistencia
+      let attChanges = 0;
+      const allDates = new Set([...Object.keys(attendance), ...Object.keys(newAtt)]);
+      allDates.forEach(d => {
+        const ids = new Set([...Object.keys(attendance[d] || {}), ...Object.keys(newAtt[d] || {})]);
+        ids.forEach(id => { if ((attendance[d] || {})[id] !== (newAtt[d] || {})[id]) attChanges++; });
+      });
+      const newHobbies = hobbyCatalog.filter(h => !availableHobbies.some(c => fold(c) === fold(h)));
+
+      return { entries, created, modified, same, missing, newAtt, attChanges, attSheet, obsSheet, hobbyCatalog, newHobbies, warnings };
+    }
+
+    const FIELD_LABELS = { name: "nombre", role: "grupo", age: "edad", siblings: "hermanos", phone: "teléfono", tutor: "tutor", hobbies: "aficiones", observations: "observaciones" };
+
+    function showImportPreview(fileName) {
+      const p = pendingImport;
+      document.getElementById("importFileName").innerText = fileName;
+      const nameList = (arr, extra) => arr.slice(0, 15).map(e => `<li>${esc(e.boy.name)}${extra ? extra(e) : ""}</li>`).join("") +
+        (arr.length > 15 ? `<li class="text-slate-400">… y ${arr.length - 15} más</li>` : "");
+
+      const nothing = p.created.length === 0 && p.modified.length === 0 && p.missing.length === 0 && p.attChanges === 0 && p.newHobbies.length === 0;
+
+      document.getElementById("importBody").innerHTML = `
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2"><p class="text-lg font-bold text-emerald-700">${p.created.length}</p><p class="text-[10px] text-emerald-800">nuevos</p></div>
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-2"><p class="text-lg font-bold text-amber-700">${p.modified.length}</p><p class="text-[10px] text-amber-800">modificados</p></div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-2"><p class="text-lg font-bold text-slate-600">${p.same.length}</p><p class="text-[10px] text-slate-600">sin cambios</p></div>
+        </div>
+        ${nothing ? `<p class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-600">✅ El Excel coincide con los datos de la app. No hay nada que cambiar.</p>` : ""}
+        ${p.created.length ? `<div><p class="font-semibold text-emerald-800 mb-1">Altas nuevas</p><ul class="list-disc pl-5 text-slate-700 space-y-0.5">${nameList(p.created)}</ul></div>` : ""}
+        ${p.modified.length ? `<div><p class="font-semibold text-amber-800 mb-1">Fichas modificadas</p><ul class="list-disc pl-5 text-slate-700 space-y-0.5">${nameList(p.modified, e => ` <span class="text-slate-400">(${e.changes.map(c => FIELD_LABELS[c]).join(", ")})</span>`)}</ul></div>` : ""}
+        ${p.missing.length ? `
+          <div class="bg-rose-50 border border-rose-200 rounded-xl p-2.5 space-y-1.5">
+            <p class="font-semibold text-rose-800">${p.missing.length} muchacho(s) de la app no aparecen en el Excel</p>
+            <p class="text-[10px] text-rose-700">Marca los que quieras <b>eliminar</b>. Los no marcados se conservan tal cual.</p>
+            ${p.missing.map(b => `
+              <label class="flex items-center gap-2"><input type="checkbox" class="missing-del w-4 h-4 accent-rose-600" value="${esc(b.id)}" />
+              <span>${esc(b.name)} <span class="text-slate-400">(${esc(b.role)})</span></span></label>`).join("")}
+          </div>` : ""}
+        <ul class="text-[11px] text-slate-600 space-y-0.5">
+          <li>📝 Observaciones: ${p.obsSheet ? "se toman las del Excel" : "no hay hoja de observaciones → se conservan las de la app"}</li>
+          <li>📋 Asistencia: ${p.attSheet ? `${p.attChanges} marca(s) cambian` : "no hay hoja de asistencia → se conserva la de la app"}</li>
+          ${p.newHobbies.length ? `<li>🎯 Aficiones nuevas: ${p.newHobbies.map(esc).join(", ")}</li>` : ""}
+        </ul>
+        ${p.warnings.length ? `
+          <details class="bg-amber-50 border border-amber-200 rounded-xl p-2.5" ${p.warnings.length <= 5 ? "open" : ""}>
+            <summary class="font-semibold text-amber-800 cursor-pointer">⚠️ ${p.warnings.length} aviso(s)</summary>
+            <ul class="list-disc pl-5 mt-1.5 text-[11px] text-amber-900 space-y-0.5">${p.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul>
+          </details>` : ""}
+        <p class="text-[10px] text-slate-400">Antes de aplicar se guarda una copia de los datos actuales para poder deshacer.</p>`;
+      document.getElementById("btnApplyImport").innerText = nothing ? "Cerrar" : "Aplicar cambios";
+      document.getElementById("importModal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeImportModal() {
+      document.getElementById("importModal").classList.add("hidden");
+      document.body.style.overflow = "";
+      pendingImport = null;
+    }
+
+    function applyImport() {
+      const p = pendingImport;
+      if (!p) return closeImportModal();
+      const toDelete = new Set([...document.querySelectorAll(".missing-del:checked")].map(el => el.value));
+      const nothing = p.created.length === 0 && p.modified.length === 0 && p.attChanges === 0 && p.newHobbies.length === 0 && toDelete.size === 0;
+      if (nothing) return closeImportModal();
+
+      snapshot("cargar Excel");
+      const kept = p.missing.filter(b => !toDelete.has(b.id));
+      boys = [...p.entries.map(e => e.boy), ...kept];
+      const valid = new Set(boys.map(b => b.id));
+      attendance = normalizeAttendance(p.newAtt, valid);
+      availableHobbies = p.hobbyCatalog;
+      boys.forEach(b => mergeHobbyCatalog(availableHobbies, b.hobbies));
+
+      saveState();
+      closeImportModal();
+      refreshAll();
+      showToast(`Excel cargado: ${p.created.length} nuevos, ${p.modified.length} modificados${toDelete.size ? `, ${toDelete.size} eliminados` : ""}`);
     }
   </script>
 </body>

@@ -6,6 +6,8 @@
   <title>Catequesis & Monaguillos</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS para soporte de lectura y escritura Excel universal (.xlsx / .xls) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     body {
       -webkit-tap-highlight-color: transparent;
@@ -43,6 +45,11 @@
         </button>
       </div>
     </header>
+
+    <!-- NOTIFICACIÓN TOAST FLOTANTE -->
+    <div id="toastMessage" class="hidden fixed top-16 left-1/2 -translate-x-1/2 max-w-xs w-full bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-xl z-50 text-center transition-all animate-bounce">
+      <span id="toastText">Datos actualizados</span>
+    </div>
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-1 p-3.5 overflow-y-auto">
@@ -99,7 +106,7 @@
         </div>
       </section>
 
-      <!-- PESTAÑA 3: RESUMEN & EXCEL -->
+      <!-- PESTAÑA 3: RESUMEN & EXCEL (BIDIRECCIONAL) -->
       <section id="tab-stats" class="hidden space-y-3.5">
         <div class="grid grid-cols-2 gap-2.5">
           <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-3 rounded-2xl text-white shadow-sm">
@@ -114,21 +121,34 @@
           </div>
         </div>
 
-        <!-- EXPORTAR A EXCEL -->
-        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-2xl p-3.5 shadow-xs space-y-2">
+        <!-- MÓDULO EXCEL BIDIRECCIONAL -->
+        <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border-2 border-emerald-300 rounded-2xl p-3.5 shadow-sm space-y-3">
           <div class="flex items-center space-x-2">
-            <span class="text-xl">📊</span>
+            <span class="text-2xl">📊</span>
             <div>
-              <h4 class="text-xs font-bold text-emerald-950">Exportar a Excel Completo</h4>
-              <p class="text-[11px] text-emerald-800">Genera 3 hojas: Muchachos, Observaciones y Asistencia.</p>
+              <h4 class="text-xs font-bold text-slate-800">Sincronización con Excel</h4>
+              <p class="text-[11px] text-slate-600">Exporta a Excel, edita en PC y vuelve a cargar los cambios.</p>
             </div>
           </div>
-          <button onclick="exportToExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow-md transition flex items-center justify-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <span>Descargar Libro Excel (.xls)</span>
-          </button>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <!-- 1. EXPORTAR -->
+            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold py-2 px-2 rounded-xl text-xs shadow-xs transition flex flex-col items-center justify-center text-center space-y-1">
+              <span class="text-sm">⬇️</span>
+              <span>Exportar Excel</span>
+            </button>
+
+            <!-- 2. IMPORTAR -->
+            <label class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold py-2 px-2 rounded-xl text-xs shadow-xs transition flex flex-col items-center justify-center text-center space-y-1 cursor-pointer">
+              <span class="text-sm">⬆️</span>
+              <span>Cargar Excel</span>
+              <input type="file" id="excelFileInput" accept=".xls,.xlsx,.xml" onchange="handleExcelImport(event)" class="hidden" />
+            </label>
+          </div>
+
+          <p class="text-[10px] text-slate-500 leading-tight">
+            💡 Puedes modificar nombres, teléfonos, observaciones o asistencias en el Excel y al subirlo se actualizará toda la app.
+          </p>
         </div>
 
         <!-- Aficiones más comunes -->
@@ -142,10 +162,10 @@
           </div>
         </div>
 
-        <!-- Respaldo técnico -->
+        <!-- Respaldo técnico JSON -->
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-slate-700">Respaldo técnico</span>
+            <span class="text-xs font-bold text-slate-700">Respaldo técnico JSON</span>
             <button onclick="resetDemoData()" class="text-xs text-rose-600 hover:underline">Reiniciar demo</button>
           </div>
           <button onclick="exportData()" class="w-full bg-white border border-slate-300 py-1.5 px-3 rounded-xl text-xs font-semibold text-slate-700 shadow-xs active:bg-slate-100">
@@ -234,7 +254,7 @@
               </div>
             </div>
 
-            <!-- Teléfono (Opcional - con aviso visual) -->
+            <!-- Teléfono (Opcional) -->
             <div>
               <div class="flex justify-between items-center mb-1">
                 <label class="font-semibold text-slate-700">Teléfono (Contacto/Padres)</label>
@@ -262,7 +282,7 @@
             </div>
           </div>
 
-          <!-- SECCIÓN 2: REGISTROS Y OBSERVACIONES ASOCIADAS DESDE LA PROPIA FICHA -->
+          <!-- SECCIÓN 2: REGISTROS Y OBSERVACIONES ASOCIADAS -->
           <div id="fichaObservationsSection" class="pt-4 border-t-2 border-indigo-100 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
@@ -272,7 +292,7 @@
               <span id="fichaObsCount" class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
             </div>
 
-            <!-- Caja para introducir una nueva nota en la ficha -->
+            <!-- Añadir nueva nota -->
             <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-3 space-y-2">
               <div class="flex justify-between items-center">
                 <span class="text-[11px] font-bold text-indigo-950">Añadir registro a este muchacho:</span>
@@ -286,13 +306,13 @@
               </div>
             </div>
 
-            <!-- Historial de observaciones anotadas -->
+            <!-- Historial -->
             <div id="inFichaObsList" class="space-y-1.5 max-h-44 overflow-y-auto pt-1">
-              <!-- Renderizado de las observaciones existentes -->
+              <!-- Renderizado de notas -->
             </div>
           </div>
 
-          <!-- BOTONES DE ACCIÓN INFERIORES DE LA FICHA -->
+          <!-- BOTONES DE ACCIÓN -->
           <div class="pt-3 border-t border-slate-100 flex items-center justify-between sticky bottom-0 bg-white py-2">
             <button type="button" id="btnDelete" onclick="deleteCurrentBoy()" class="text-rose-600 font-semibold px-2 py-1 rounded hover:bg-rose-50 hidden">
               Eliminar Muchacho
@@ -395,6 +415,15 @@
       });
     });
 
+    function showToast(msg) {
+      const toast = document.getElementById("toastMessage");
+      document.getElementById("toastText").innerText = msg;
+      toast.classList.remove("hidden");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 3000);
+    }
+
     function saveState() {
       localStorage.setItem("catequesis_boys", JSON.stringify(boys));
       localStorage.setItem("catequesis_attendance", JSON.stringify(attendance));
@@ -441,7 +470,7 @@
       renderList();
     }
 
-    // RENDERIZAR LISTA DE MUCHACHOS
+    // RENDERIZAR LISTA
     function renderList() {
       const query = document.getElementById("searchInput").value.toLowerCase().trim();
       const container = document.getElementById("boysList");
@@ -449,7 +478,6 @@
 
       const filtered = boys.filter(b => {
         const hasPhone = b.phone && b.phone.trim().length > 0;
-        
         let matchesFilter = false;
         if (currentFilter === 'todos') matchesFilter = true;
         else if (currentFilter === 'sin-telefono') matchesFilter = !hasPhone;
@@ -473,13 +501,7 @@
       filtered.forEach(boy => {
         const hasPhone = boy.phone && boy.phone.trim().length > 0;
         const cleanPhone = hasPhone ? boy.phone.replace(/[^0-9+]/g, '') : '';
-        
-        const roleBadgeClass = boy.role === 'Confirmación' 
-          ? 'bg-purple-100 text-purple-700' 
-          : boy.role === 'Monaguillo' 
-            ? 'bg-amber-100 text-amber-800' 
-            : 'bg-emerald-100 text-emerald-800';
-
+        const roleBadgeClass = boy.role === 'Confirmación' ? 'bg-purple-100 text-purple-700' : boy.role === 'Monaguillo' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
         const obsCount = (boy.observations || []).length;
         const borderClass = !hasPhone ? 'border-amber-300 bg-amber-50/20 shadow-amber-100' : 'border-slate-200/80 bg-white';
 
@@ -503,7 +525,6 @@
               </div>
             </div>
 
-            <!-- Contacto o Aviso llamativo -->
             <div class="ml-2 flex flex-col items-end justify-center">
               ${hasPhone ? `
                 <div class="flex flex-col space-y-1">
@@ -523,7 +544,6 @@
             </div>
           </div>
 
-          <!-- Barra inferior de la tarjeta: Acceso directo a la ficha completa con sus observaciones -->
           <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
             <button onclick="openModal('${boy.id}', true)" class="flex items-center space-x-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50/70 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition">
               <span>📝 Observaciones</span>
@@ -538,7 +558,7 @@
       });
     }
 
-    // MODAL DE LA FICHA (INTEGRA REGISTROS DIRECTAMENTE)
+    // MODAL DE LA FICHA
     function openModal(boyId = null, scrollToObs = false) {
       selectedHobbies.clear();
       document.getElementById("boyForm").reset();
@@ -566,7 +586,6 @@
             if (!availableHobbies.includes(h)) availableHobbies.push(h);
           });
 
-          // Cargar copia de observaciones asociadas
           currentFichaObs = boy.observations ? JSON.parse(JSON.stringify(boy.observations)) : [];
           document.getElementById("btnDelete").classList.remove("hidden");
         }
@@ -592,7 +611,6 @@
       document.getElementById("modalForm").classList.add("hidden");
     }
 
-    // GESTIÓN DE OBSERVACIONES DIRECTAMENTE EN LA FICHA
     function renderFichaObservations() {
       const container = document.getElementById("inFichaObsList");
       document.getElementById("fichaObsCount").innerText = currentFichaObs.length;
@@ -632,13 +650,12 @@
         return;
       }
 
-      const newObs = {
+      currentFichaObs.unshift({
         id: "obs-" + Date.now(),
         date: date,
         text: text
-      };
+      });
 
-      currentFichaObs.unshift(newObs);
       document.getElementById("inFichaText").value = "";
       renderFichaObservations();
     }
@@ -648,7 +665,6 @@
       renderFichaObservations();
     }
 
-    // GUARDAR FICHA COMPLETA (DATOS BÁSICOS + REGISTROS ASOCIADOS)
     function saveBoy(e) {
       e.preventDefault();
       const id = document.getElementById("boyId").value || Date.now().toString();
@@ -659,7 +675,6 @@
       const phone = document.getElementById("boyPhone").value.trim();
       const hobbiesList = Array.from(selectedHobbies);
 
-      // Si había texto sin guardar en la cajita de observación, añadirlo automáticamente
       const pendingText = document.getElementById("inFichaText").value.trim();
       if (pendingText) {
         currentFichaObs.unshift({
@@ -690,6 +705,7 @@
       saveState();
       renderList();
       closeModal();
+      showToast("Ficha guardada correctamente");
     }
 
     function deleteCurrentBoy() {
@@ -699,10 +715,10 @@
         saveState();
         renderList();
         closeModal();
+        showToast("Registro eliminado");
       }
     }
 
-    // AFICIONES DINÁMICAS
     function addNewHobby() {
       const input = document.getElementById("newHobbyInput");
       const val = input.value.trim();
@@ -804,7 +820,7 @@
       renderAttendance();
     }
 
-    // ESTADÍSTICAS Y EXCEL
+    // ESTADÍSTICAS
     function updateStats() {
       const total = boys.length;
       document.getElementById("statTotal").innerText = total;
@@ -851,6 +867,7 @@
       }
     }
 
+    // EXPORTAR A EXCEL
     function exportToExcel() {
       const sessionDates = Object.keys(attendance).sort();
 
@@ -1057,6 +1074,258 @@
       a.href = url;
       a.download = `catequesis_parroquia_${today}.xls`;
       a.click();
+      showToast("Descargando libro Excel...");
+    }
+
+    // =========================================================================
+    // IMPORTACIÓN DESDE EXCEL (.XLS / .XLSX / .XML)
+    // =========================================================================
+    function handleExcelImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      if (window.XLSX && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
+        reader.onload = function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            processWorkbookJson(workbook);
+          } catch(err) {
+            console.warn("Fallo lectura binaria XLSX, intentando modo texto...", err);
+            readAsXmlText(file);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        readAsXmlText(file);
+      }
+
+      event.target.value = "";
+    }
+
+    function readAsXmlText(file) {
+      const textReader = new FileReader();
+      textReader.onload = function(e) {
+        try {
+          processSpreadsheetXml(e.target.result);
+        } catch(err) {
+          alert("No se pudo leer el archivo. Asegúrate de subir el archivo .xls o .xml exportado por la app.");
+          console.error(err);
+        }
+      };
+      textReader.readAsText(file);
+    }
+
+    function processSpreadsheetXml(xmlText) {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+      const worksheets = Array.from(xmlDoc.getElementsByTagName("Worksheet"));
+
+      if (worksheets.length === 0) {
+        alert("El archivo no contiene hojas válidas de Excel.");
+        return;
+      }
+
+      const wsMuchachos = worksheets.find(w => (w.getAttribute("ss:Name") || w.getAttribute("Name") || "").includes("Muchachos")) || worksheets[0];
+      const wsObservaciones = worksheets.find(w => (w.getAttribute("ss:Name") || w.getAttribute("Name") || "").includes("Observaciones"));
+      const wsAsistencia = worksheets.find(w => (w.getAttribute("ss:Name") || w.getAttribute("Name") || "").includes("Asistencia"));
+
+      const muchachosRows = Array.from(wsMuchachos.getElementsByTagName("Row"));
+      if (muchachosRows.length <= 1) {
+        alert("No hay registros en la hoja de Muchachos.");
+        return;
+      }
+
+      const importedBoysMap = new Map();
+      const newBoysList = [];
+
+      for (let i = 1; i < muchachosRows.length; i++) {
+        const cells = Array.from(muchachosRows[i].getElementsByTagName("Cell"));
+        const rowVals = cells.map(c => (c.querySelector("Data") ? c.querySelector("Data").textContent.trim() : ""));
+        
+        const name = rowVals[0];
+        if (!name) continue;
+
+        const role = rowVals[1] || "Confirmación";
+        const age = parseInt(rowVals[2]) || null;
+        const siblings = parseInt(rowVals[3]) || 0;
+        let phone = rowVals[4] || "";
+        if (phone.includes("FALTA TELÉFONO")) phone = "";
+
+        const hobbiesStr = rowVals[5] || "";
+        const hobbies = hobbiesStr ? hobbiesStr.split(",").map(h => h.trim()).filter(Boolean) : [];
+        
+        hobbies.forEach(h => {
+          if (!availableHobbies.includes(h)) availableHobbies.push(h);
+        });
+
+        const existing = boys.find(b => b.name.toLowerCase() === name.toLowerCase());
+        const id = existing ? existing.id : ("boy-" + Date.now() + "-" + i);
+        const prevObs = existing ? (existing.observations || []) : [];
+
+        const boyObj = {
+          id,
+          name,
+          role,
+          age,
+          siblings,
+          phone,
+          hobbies,
+          observations: prevObs
+        };
+
+        importedBoysMap.set(name.toLowerCase(), boyObj);
+        newBoysList.push(boyObj);
+      }
+
+      if (wsObservaciones) {
+        const obsRows = Array.from(wsObservaciones.getElementsByTagName("Row"));
+        newBoysList.forEach(b => b.observations = []);
+
+        for (let i = 1; i < obsRows.length; i++) {
+          const cells = Array.from(obsRows[i].getElementsByTagName("Cell"));
+          const rowVals = cells.map(c => (c.querySelector("Data") ? c.querySelector("Data").textContent.trim() : ""));
+          
+          const date = rowVals[0];
+          const boyName = (rowVals[1] || "").toLowerCase();
+          const obsText = rowVals[3];
+
+          if (date && date !== "-" && obsText && importedBoysMap.has(boyName)) {
+            const boy = importedBoysMap.get(boyName);
+            boy.observations.push({
+              id: "obs-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+              date: date,
+              text: obsText
+            });
+          }
+        }
+      }
+
+      const newAttendance = {};
+      if (wsAsistencia) {
+        const astRows = Array.from(wsAsistencia.getElementsByTagName("Row"));
+        if (astRows.length > 0) {
+          const headerCells = Array.from(astRows[0].getElementsByTagName("Cell"));
+          const headerVals = headerCells.map(c => (c.querySelector("Data") ? c.querySelector("Data").textContent.trim() : ""));
+
+          const dateCols = [];
+          for (let c = 2; c < headerVals.length; c++) {
+            const val = headerVals[c];
+            if (val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+              dateCols.push({ colIndex: c, date: val });
+              if (!newAttendance[val]) newAttendance[val] = {};
+            }
+          }
+
+          for (let i = 1; i < astRows.length; i++) {
+            const cells = Array.from(astRows[i].getElementsByTagName("Cell"));
+            const rowVals = cells.map(c => (c.querySelector("Data") ? c.querySelector("Data").textContent.trim() : ""));
+            const boyName = (rowVals[0] || "").toLowerCase();
+
+            if (importedBoysMap.has(boyName)) {
+              const boy = importedBoysMap.get(boyName);
+              dateCols.forEach(({ colIndex, date }) => {
+                const mark = rowVals[colIndex];
+                if (mark === "Presente") {
+                  newAttendance[date][boy.id] = true;
+                } else if (mark === "Falta") {
+                  newAttendance[date][boy.id] = false;
+                }
+              });
+            }
+          }
+        }
+      }
+
+      boys = newBoysList;
+      if (Object.keys(newAttendance).length > 0) {
+        attendance = newAttendance;
+      }
+
+      saveState();
+      renderList();
+      renderAttendance();
+      updateStats();
+
+      showToast(`¡Excel cargado! ${boys.length} muchachos sincronizados`);
+      alert(`✅ Carga completada con éxito:\n- ${boys.length} muchachos registrados/actualizados.\n- Observaciones e historial de asistencia sincronizados.`);
+    }
+
+    function processWorkbookJson(workbook) {
+      const sheetName = workbook.SheetNames.find(n => n.includes("Muchachos")) || workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rawData = XLSX.utils.sheet_to_json(sheet);
+
+      if (!rawData || rawData.length === 0) {
+        alert("No se encontraron registros en el archivo.");
+        return;
+      }
+
+      const newBoysList = [];
+      const importedMap = new Map();
+
+      rawData.forEach((row, i) => {
+        const name = row["Nombre y Apellidos"] || row["Nombre"] || Object.values(row)[0];
+        if (!name) return;
+
+        const role = row["Grupo"] || "Confirmación";
+        const age = parseInt(row["Edad"]) || null;
+        const siblings = parseInt(row["Nº Hermanos"]) || 0;
+        let phone = String(row["Teléfono Contacto"] || row["Teléfono"] || "");
+        if (phone.includes("FALTA TELÉFONO")) phone = "";
+
+        const hobbiesStr = row["Aficiones"] || "";
+        const hobbies = typeof hobbiesStr === 'string' ? hobbiesStr.split(",").map(h => h.trim()).filter(Boolean) : [];
+        hobbies.forEach(h => {
+          if (!availableHobbies.includes(h)) availableHobbies.push(h);
+        });
+
+        const existing = boys.find(b => b.name.toLowerCase() === name.toLowerCase());
+        const id = existing ? existing.id : ("boy-" + Date.now() + "-" + i);
+
+        const boyObj = {
+          id,
+          name,
+          role,
+          age,
+          siblings,
+          phone,
+          hobbies,
+          observations: []
+        };
+
+        importedMap.set(name.toLowerCase(), boyObj);
+        newBoysList.push(boyObj);
+      });
+
+      const obsSheetName = workbook.SheetNames.find(n => n.includes("Observaciones"));
+      if (obsSheetName) {
+        const obsData = XLSX.utils.sheet_to_json(workbook.Sheets[obsSheetName]);
+        obsData.forEach(row => {
+          const date = row["Fecha"];
+          const boyName = (row["Muchacho"] || "").toLowerCase();
+          const text = row["Observación / Nota de Evolución"] || row["Observación"];
+
+          if (date && date !== "-" && text && importedMap.has(boyName)) {
+            importedMap.get(boyName).observations.push({
+              id: "obs-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+              date: String(date),
+              text: String(text)
+            });
+          }
+        });
+      }
+
+      boys = newBoysList;
+      saveState();
+      renderList();
+      renderAttendance();
+      updateStats();
+
+      showToast(`¡Excel cargado! ${boys.length} muchachos sincronizados`);
+      alert(`✅ Carga completada:\n${boys.length} muchachos cargados desde Excel.`);
     }
 
     function escapeXml(unsafe) {
@@ -1097,6 +1366,7 @@
         renderList();
         renderAttendance();
         updateStats();
+        showToast("Datos demo restablecidos");
       }
     }
   </script>

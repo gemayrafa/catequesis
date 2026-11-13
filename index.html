@@ -1649,14 +1649,17 @@
       const reader = new FileReader();
       reader.onload = e => {
         try {
-          const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+          const bytes = new Uint8Array(e.target.result);
+          if (bytes.length === 0) throw new Error("El archivo está vacío (0 bytes). Si está en OneDrive, ábrelo antes una vez para que se descargue al equipo.");
+          const wb = XLSX.read(bytes, { type: "array" });
           pendingImport = planImport(wb);
           showImportPreview(file.name);
         } catch (err) {
           console.error(err);
-          alert("No se pudo leer el Excel.\n\n" + err.message);
+          alert(`No se pudo leer el Excel «${file.name}».\n\n${err.message}`);
         }
       };
+      reader.onerror = () => alert(`No se pudo abrir «${file.name}». Comprueba que el archivo no esté abierto en Excel ni pendiente de descargar.`);
       reader.readAsArrayBuffer(file);
     }
 
@@ -1686,17 +1689,29 @@
 
     function planImport(wb) {
       const warnings = [];
-      let mRows = sheetRows(wb, n => n.includes("muchachos"));
-      if (!mRows) {
-        const first = wb.SheetNames[0];
-        mRows = first ? XLSX.utils.sheet_to_json(wb.Sheets[first], { header: 1, raw: true, defval: "", blankrows: false }) : null;
-      }
-      if (!mRows || mRows.length === 0) throw new Error("No se encontró la hoja «Muchachos».");
+      const NAME_ALIASES = ["nombre y apellidos", "nombre", "muchacho", "alumno", "nombre completo", "nombre y apellido", "apellidos y nombre"];
+      const names = wb.SheetNames || [];
+      if (names.length === 0) throw new Error("El archivo no contiene ninguna hoja. ¿Es un Excel válido?");
 
-      // Cabecera: primera fila que contenga una columna de nombre
-      const NAME_ALIASES = ["nombre y apellidos", "nombre", "muchacho", "alumno", "nombre completo"];
-      let hIdx = mRows.slice(0, 10).findIndex(r => findCol(r, NAME_ALIASES) > -1);
-      if (hIdx === -1) throw new Error("La hoja «Muchachos» no tiene una columna «Nombre y Apellidos».");
+      // Hoja de muchachos: primero la que se llame «Muchachos»; si no, cualquier hoja
+      // (salvo observaciones/asistencia/aficiones/instrucciones) que tenga columna de nombre.
+      const skip = n => ["observaciones", "asistencia", "aficiones", "instrucciones"].some(k => fold(n).includes(k));
+      const candidates = [
+        ...names.filter(n => fold(n).includes("muchachos")),
+        ...names.filter(n => !fold(n).includes("muchachos") && !skip(n)),
+        ...names.filter(n => !fold(n).includes("muchachos") && skip(n))
+      ];
+      let mRows = null, hIdx = -1, mSheet = null;
+      for (const n of candidates) {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: "", blankrows: false });
+        const idx = rows.slice(0, 10).findIndex(r => findCol(r, NAME_ALIASES) > -1);
+        if (idx > -1) { mRows = rows; hIdx = idx; mSheet = n; break; }
+      }
+      if (!mRows) {
+        throw new Error(`No encuentro la lista de muchachos.\n\nHojas del archivo: ${names.map(n => `«${n}»`).join(", ")}.\n\n` +
+          `Tiene que haber una hoja (normalmente «Muchachos») cuya primera fila tenga una columna «Nombre y Apellidos» (o «Nombre»).`);
+      }
+      if (!fold(mSheet).includes("muchachos")) warnings.push(`No hay hoja «Muchachos»: se han leído los muchachos de la hoja «${mSheet}».`);
       const header = mRows[hIdx];
       const col = {
         id: findCol(header, ["id"]),
@@ -1769,7 +1784,7 @@
         entries.push({ boy, ex });
       });
 
-      if (entries.length === 0) throw new Error("La hoja «Muchachos» no contiene ningún nombre.");
+      if (entries.length === 0) throw new Error(`La hoja «${mSheet}» no contiene ningún nombre debajo de la cabecera.`);
 
       const entryById = new Map(entries.map(e => [e.boy.id, e]));
       const entryByName = new Map();

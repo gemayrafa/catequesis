@@ -22,7 +22,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-  <!-- VISTA MÓVIL CONTENEDOR (Optimizado para smartphone y centrado en PC) -->
+  <!-- CONTENEDOR PRINCIPAL SMARTPHONE -->
   <div class="max-w-md mx-auto w-full min-h-screen bg-white shadow-xl flex flex-col relative pb-20">
     
     <!-- HEADER -->
@@ -34,7 +34,7 @@
           </div>
           <div>
             <h1 class="text-base font-bold leading-tight">Parroquia - Jóvenes</h1>
-            <p class="text-xs text-indigo-200" id="headerSubtitle">Confirmación & Monaguillos</p>
+            <p class="text-xs text-indigo-200">Confirmación & Monaguillos</p>
           </div>
         </div>
         <button id="btnNewModal" onclick="openModal()" class="bg-white text-indigo-700 px-3 py-1.5 rounded-full text-xs font-semibold shadow hover:bg-indigo-50 active:scale-95 transition flex items-center space-x-1">
@@ -44,7 +44,7 @@
       </div>
     </header>
 
-    <!-- CONTENIDO PRINCIPAL SEGÚN PESTAÑA -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-1 p-3.5 overflow-y-auto">
 
       <!-- PESTAÑA 1: LISTADO DE MUCHACHOS -->
@@ -67,7 +67,7 @@
           </div>
         </div>
 
-        <!-- Lista de tarjetas -->
+        <!-- Lista de muchachos -->
         <div id="boysList" class="space-y-2.5">
           <!-- Renderizado dinámico -->
         </div>
@@ -84,7 +84,6 @@
             <span>Presentes: <b id="presentCount" class="text-emerald-700">0</b> / <span id="totalStudents">0</span></span>
             <span id="rateLabel" class="bg-indigo-200/80 px-2 py-0.5 rounded-full font-semibold">0%</span>
           </div>
-          <!-- Barra de progreso -->
           <div class="w-full bg-indigo-200 h-1.5 rounded-full mt-2 overflow-hidden">
             <div id="attendanceProgressBar" class="bg-emerald-500 h-1.5 transition-all duration-300" style="width: 0%"></div>
           </div>
@@ -100,7 +99,7 @@
         </div>
       </section>
 
-      <!-- PESTAÑA 3: RESUMEN & EXPORTACIÓN EXCEL -->
+      <!-- PESTAÑA 3: RESUMEN & EXCEL -->
       <section id="tab-stats" class="hidden space-y-3.5">
         <div class="grid grid-cols-2 gap-2.5">
           <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-3 rounded-2xl text-white shadow-sm">
@@ -115,7 +114,7 @@
           </div>
         </div>
 
-        <!-- BOTÓN DESTACADO: EXPORTAR A EXCEL COMPLETO -->
+        <!-- EXPORTAR A EXCEL -->
         <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-2xl p-3.5 shadow-xs space-y-2">
           <div class="flex items-center space-x-2">
             <span class="text-xl">📊</span>
@@ -139,11 +138,11 @@
             <span class="text-[11px] text-indigo-600 font-normal">Para dinámicas</span>
           </h3>
           <div id="hobbiesCloud" class="flex flex-wrap gap-1.5 pt-1">
-            <!-- Píldoras de aficiones -->
+            <!-- Píldoras -->
           </div>
         </div>
 
-        <!-- Copia JSON y Respaldo -->
+        <!-- Respaldo técnico -->
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold text-slate-700">Respaldo técnico</span>
@@ -157,7 +156,7 @@
 
     </main>
 
-    <!-- BARRA DE NAVEGACIÓN INFERIOR (Smartphone) -->
+    <!-- NAVEGACIÓN INFERIOR SMARTPHONE -->
     <nav class="fixed bottom-0 max-w-md w-full bg-white/95 backdrop-blur-md border-t border-slate-200 py-1.5 px-6 flex justify-around items-center z-40">
       <button onclick="switchTab('boys')" id="nav-boys" class="nav-btn flex flex-col items-center text-indigo-600 transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,96 +180,126 @@
       </button>
     </nav>
 
-    <!-- MODAL 1: REGISTRAR / EDITAR DATOS DEL MUCHACHO -->
+    <!-- FICHA DEL MUCHACHO (INTEGRA DATOS BÁSICOS + REGISTROS/OBSERVACIONES EN LA PROPIA FICHA) -->
     <div id="modalForm" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[94vh] flex flex-col overflow-hidden">
         
-        <div class="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h3 id="modalTitle" class="text-sm font-bold text-slate-800">Ficha del Muchacho</h3>
+        <!-- Header de la Ficha -->
+        <div class="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+          <div>
+            <h3 id="modalTitle" class="text-sm font-bold text-slate-800">Ficha del Muchacho</h3>
+            <p id="modalSubtitle" class="text-[11px] text-slate-500">Datos y seguimiento continuo</p>
+          </div>
           <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">&times;</button>
         </div>
 
-        <form id="boyForm" onsubmit="saveBoy(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs">
+        <form id="boyForm" onsubmit="saveBoy(event)" class="p-5 overflow-y-auto space-y-4 text-xs flex-1">
           <input type="hidden" id="boyId" />
 
-          <!-- Nombre y Apellidos -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Nombre y Apellidos *</label>
-            <input type="text" id="boyName" required placeholder="Ej: Lucas Morales Ruiz" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-          </div>
-
-          <!-- Grupo / Rol -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Grupo / Rol *</label>
-            <div class="grid grid-cols-3 gap-1.5">
-              <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
-                <input type="radio" name="boyRole" value="Confirmación" checked class="hidden" />
-                <span>Confirmación</span>
-              </label>
-              <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
-                <input type="radio" name="boyRole" value="Monaguillo" class="hidden" />
-                <span>Monaguillo</span>
-              </label>
-              <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
-                <input type="radio" name="boyRole" value="Ambos" class="hidden" />
-                <span>Ambos</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Edad y Nº Hermanos -->
-          <div class="grid grid-cols-2 gap-3">
+          <!-- SECCIÓN 1: DATOS PERSONALES -->
+          <div class="space-y-3">
             <div>
-              <label class="block font-semibold text-slate-700 mb-1">Edad (años)</label>
-              <input type="number" id="boyAge" min="7" max="25" placeholder="14" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+              <label class="block font-semibold text-slate-700 mb-1">Nombre y Apellidos *</label>
+              <input type="text" id="boyName" required placeholder="Ej: Lucas Morales Ruiz" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
             </div>
+
+            <!-- Grupo / Rol -->
             <div>
-              <label class="block font-semibold text-slate-700 mb-1">Nº de Hermanos</label>
-              <input type="number" id="boySiblings" min="0" max="15" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+              <label class="block font-semibold text-slate-700 mb-1">Grupo / Rol *</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
+                  <input type="radio" name="boyRole" value="Confirmación" checked class="hidden" />
+                  <span>Confirmación</span>
+                </label>
+                <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
+                  <input type="radio" name="boyRole" value="Monaguillo" class="hidden" />
+                  <span>Monaguillo</span>
+                </label>
+                <label class="flex items-center justify-center border border-slate-200 rounded-xl p-2 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-medium text-slate-600">
+                  <input type="radio" name="boyRole" value="Ambos" class="hidden" />
+                  <span>Ambos</span>
+                </label>
+              </div>
             </div>
-          </div>
 
-          <!-- Teléfono (Opcional - Alerta si no se introduce) -->
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="font-semibold text-slate-700">Teléfono (Contacto/Padres)</label>
-              <span class="text-[11px] text-slate-400 font-normal">Opcional</span>
+            <!-- Edad y Hermanos -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Edad (años)</label>
+                <input type="number" id="boyAge" min="7" max="25" placeholder="14" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Nº de Hermanos</label>
+                <input type="number" id="boySiblings" min="0" max="15" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+              </div>
             </div>
-            <div class="relative">
-              <input type="tel" id="boyPhone" placeholder="Opcional: ej: 612345678" class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-              <span class="absolute left-3 top-2.5 text-slate-400">📞</span>
-            </div>
-            <p class="text-[10px] text-amber-700 mt-1">💡 Si se deja vacío, aparecerá una alerta destacada en la lista.</p>
-          </div>
 
-          <!-- Aficiones con posibilidad de añadir nuevas -->
-          <div class="space-y-1.5">
-            <div class="flex justify-between items-center">
+            <!-- Teléfono (Opcional - con aviso visual) -->
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="font-semibold text-slate-700">Teléfono (Contacto/Padres)</label>
+                <span class="text-[11px] text-slate-400 font-normal">Opcional</span>
+              </div>
+              <div class="relative">
+                <input type="tel" id="boyPhone" placeholder="Opcional: ej: 612345678" class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+                <span class="absolute left-3 top-2.5 text-slate-400">📞</span>
+              </div>
+              <p class="text-[10px] text-amber-700 mt-1">💡 Si se deja vacío, la tarjeta mostrará la alerta "FALTA TELÉFONO".</p>
+            </div>
+
+            <!-- Aficiones -->
+            <div class="space-y-1.5">
               <label class="block font-semibold text-slate-700">Aficiones (toca para seleccionar)</label>
-            </div>
-
-            <!-- Listado de etiquetas -->
-            <div id="hobbiesSelector" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pt-1">
-              <!-- Renderizado interactivo -->
-            </div>
-
-            <!-- Añadir NUEVA afición -->
-            <div class="flex items-center space-x-1.5 pt-1.5">
-              <input type="text" id="newHobbyInput" placeholder="Añadir otra afición (ej: Ajedrez, Robótica...)" class="flex-1 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <button type="button" onclick="addNewHobby()" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-semibold rounded-xl border border-indigo-200 hover:bg-indigo-100 transition whitespace-nowrap">
-                + Añadir
-              </button>
+              <div id="hobbiesSelector" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pt-1">
+                <!-- Renderizado interactivo -->
+              </div>
+              <div class="flex items-center space-x-1.5 pt-1">
+                <input type="text" id="newHobbyInput" placeholder="Añadir otra afición (ej: Ajedrez...)" class="flex-1 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <button type="button" onclick="addNewHobby()" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-semibold rounded-xl border border-indigo-200 hover:bg-indigo-100 transition whitespace-nowrap">
+                  + Añadir
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Botones de Acción -->
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <!-- SECCIÓN 2: REGISTROS Y OBSERVACIONES ASOCIADAS DESDE LA PROPIA FICHA -->
+          <div id="fichaObservationsSection" class="pt-4 border-t-2 border-indigo-100 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-sm">📝</span>
+                <span class="font-bold text-slate-800 text-xs">Registros y Observaciones Asociadas</span>
+              </div>
+              <span id="fichaObsCount" class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+            </div>
+
+            <!-- Caja para introducir una nueva nota en la ficha -->
+            <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-3 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-[11px] font-bold text-indigo-950">Añadir registro a este muchacho:</span>
+                <input type="date" id="inFichaDate" class="text-xs bg-white border border-indigo-200 rounded-lg px-2 py-0.5 text-slate-700 focus:outline-none" />
+              </div>
+              <textarea id="inFichaText" rows="2" placeholder="Escribe aquí la observación (ej: avance en el temario, llamada con padres, turno misa monaguillos, actitud...)" class="w-full text-xs p-2.5 bg-white border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+              <div class="flex justify-end">
+                <button type="button" onclick="addObsFromFicha()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition flex items-center space-x-1">
+                  <span>+ Anotar Registro</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Historial de observaciones anotadas -->
+            <div id="inFichaObsList" class="space-y-1.5 max-h-44 overflow-y-auto pt-1">
+              <!-- Renderizado de las observaciones existentes -->
+            </div>
+          </div>
+
+          <!-- BOTONES DE ACCIÓN INFERIORES DE LA FICHA -->
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between sticky bottom-0 bg-white py-2">
             <button type="button" id="btnDelete" onclick="deleteCurrentBoy()" class="text-rose-600 font-semibold px-2 py-1 rounded hover:bg-rose-50 hidden">
-              Eliminar
+              Eliminar Muchacho
             </button>
             <div class="flex space-x-2 ml-auto">
               <button type="button" onclick="closeModal()" class="px-3.5 py-2 rounded-xl text-slate-600 bg-slate-100 font-medium">Cancelar</button>
-              <button type="submit" class="px-5 py-2 rounded-xl text-white bg-indigo-600 font-semibold shadow hover:bg-indigo-700">Guardar</button>
+              <button type="submit" class="px-5 py-2 rounded-xl text-white bg-indigo-600 font-semibold shadow hover:bg-indigo-700">Guardar Ficha</button>
             </div>
           </div>
         </form>
@@ -278,51 +307,9 @@
       </div>
     </div>
 
-    <!-- MODAL 2: GESTIÓN DE OBSERVACIONES / DIARIO DE EVOLUCIÓN -->
-    <div id="modalObservations" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[92vh] flex flex-col overflow-hidden">
-        
-        <div class="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
-          <div>
-            <h3 class="text-sm font-bold text-indigo-950 flex items-center space-x-1.5">
-              <span>📝 Observaciones y Evolución</span>
-            </h3>
-            <p id="obsBoyName" class="text-xs text-indigo-700 font-medium"></p>
-          </div>
-          <button onclick="closeObservationsModal()" class="w-7 h-7 rounded-full bg-indigo-200/60 text-indigo-800 flex items-center justify-center font-bold text-sm">&times;</button>
-        </div>
-
-        <div class="p-4 overflow-y-auto space-y-4 flex-1">
-          <!-- Formulario para agregar nueva observación -->
-          <form onsubmit="addObservation(event)" class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
-            <div class="flex justify-between items-center">
-              <label class="text-xs font-bold text-slate-700">Nueva Observación:</label>
-              <input type="date" id="obsDate" required class="text-xs bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-slate-600 focus:outline-none" />
-            </div>
-            <textarea id="obsText" rows="2" required placeholder="Ej: Mostró mucho interés en el tema... o falta justificada por examen escolar..." class="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-            <div class="flex justify-end">
-              <button type="submit" class="bg-indigo-600 text-white text-xs font-semibold px-4 py-1.5 rounded-xl shadow hover:bg-indigo-700 active:scale-95 transition">
-                + Guardar Observación
-              </button>
-            </div>
-          </form>
-
-          <!-- Listado cronológico de observaciones -->
-          <div class="space-y-2">
-            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">Historial anotado</h4>
-            <div id="obsList" class="space-y-2">
-              <!-- Renderizado dinámico de notas -->
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
   </div>
 
   <script>
-    // AFICIONES BASE
     const DEFAULT_HOBBIES = [
       "Fútbol", "Pintar / Dibujar", "Música / Guitarra", 
       "Videojuegos", "Baloncesto", "Lectura", 
@@ -331,7 +318,6 @@
 
     let availableHobbies = JSON.parse(localStorage.getItem("catequesis_hobbies")) || DEFAULT_HOBBIES;
 
-    // DATOS DE EJEMPLO (Incluye muchachos sin teléfono para probar la alerta visual)
     const INITIAL_BOYS = [
       {
         id: "1",
@@ -352,7 +338,7 @@
         role: "Monaguillo",
         age: 11,
         siblings: 1,
-        phone: "", // SIN TELÉFONO para mostrar alerta
+        phone: "",
         hobbies: ["Pintar / Dibujar", "Lectura", "Música / Guitarra"],
         observations: [
           { id: "obs-3", date: "2026-10-20", text: "Ha aprendido bien el orden de los vasos sagrados en el altar." }
@@ -374,7 +360,7 @@
         role: "Confirmación",
         age: 15,
         siblings: 0,
-        phone: "", // SIN TELÉFONO para mostrar alerta
+        phone: "",
         hobbies: ["Teatro", "Pintar / Dibujar"],
         observations: [
           { id: "obs-4", date: "2026-11-01", text: "Pendiente pedir teléfono de contacto a su madre en la próxima sesión." }
@@ -390,13 +376,13 @@
     };
     let currentFilter = "todos";
     let selectedHobbies = new Set();
-    let currentObsBoyId = null;
+    let currentFichaObs = [];
 
     const today = new Date().toISOString().split('T')[0];
 
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("attendanceDate").value = today;
-      document.getElementById("obsDate").value = today;
+      document.getElementById("inFichaDate").value = today;
       renderList();
       renderAttendance();
       updateStats();
@@ -434,7 +420,7 @@
       if (tabId === 'stats') updateStats();
     }
 
-    // FILTRO DE LISTA
+    // FILTROS
     function setFilter(role) {
       currentFilter = role;
       document.querySelectorAll(".filter-btn").forEach(btn => {
@@ -455,7 +441,7 @@
       renderList();
     }
 
-    // RENDERIZAR LISTA DE MUCHACHOS (Con aviso llamativo si no tiene teléfono)
+    // RENDERIZAR LISTA DE MUCHACHOS
     function renderList() {
       const query = document.getElementById("searchInput").value.toLowerCase().trim();
       const container = document.getElementById("boysList");
@@ -495,11 +481,7 @@
             : 'bg-emerald-100 text-emerald-800';
 
         const obsCount = (boy.observations || []).length;
-
-        // Tarjeta con borde rojo/ámbar si falta teléfono
-        const borderClass = !hasPhone 
-          ? 'border-amber-300 bg-amber-50/20 shadow-amber-100' 
-          : 'border-slate-200/80 bg-white';
+        const borderClass = !hasPhone ? 'border-amber-300 bg-amber-50/20 shadow-amber-100' : 'border-slate-200/80 bg-white';
 
         const card = document.createElement("div");
         card.className = `border rounded-2xl p-3 shadow-xs transition ${borderClass}`;
@@ -521,19 +503,18 @@
               </div>
             </div>
 
-            <!-- Columna de contacto: Botones o ALERTA LLAMATIVA -->
+            <!-- Contacto o Aviso llamativo -->
             <div class="ml-2 flex flex-col items-end justify-center">
               ${hasPhone ? `
                 <div class="flex flex-col space-y-1">
-                  <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition" title="Llamar al ${boy.phone}">
+                  <a href="tel:${cleanPhone}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition" title="Llamar">
                     📞
                   </a>
-                  <a href="https://wa.me/${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition" title="WhatsApp al ${boy.phone}">
+                  <a href="https://wa.me/${cleanPhone}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 active:scale-95 transition" title="WhatsApp">
                     💬
                   </a>
                 </div>
               ` : `
-                <!-- AVISO LLAMATIVO EN TONO VIBRANTE -->
                 <div onclick="openModal('${boy.id}')" class="cursor-pointer bg-rose-500 text-white text-[10px] font-extrabold px-2 py-1.5 rounded-xl shadow flex flex-col items-center justify-center text-center animate-pulse hover:bg-rose-600 transition" title="Toca para añadir teléfono">
                   <span class="text-xs">⚠️</span>
                   <span class="leading-tight">FALTA<br/>TELÉFONO</span>
@@ -542,14 +523,14 @@
             </div>
           </div>
 
-          <!-- Barra inferior de la tarjeta -->
+          <!-- Barra inferior de la tarjeta: Acceso directo a la ficha completa con sus observaciones -->
           <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-            <button onclick="openObservationsModal('${boy.id}')" class="flex items-center space-x-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50/70 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition">
+            <button onclick="openModal('${boy.id}', true)" class="flex items-center space-x-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50/70 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition">
               <span>📝 Observaciones</span>
               <span class="bg-indigo-200 text-indigo-900 text-[10px] font-bold px-1.5 py-0.2 rounded-full">${obsCount}</span>
             </button>
             <button onclick="openModal('${boy.id}')" class="text-xs text-slate-400 hover:text-slate-600 font-medium">
-              Editar datos ➔
+              Abrir Ficha ➔
             </button>
           </div>
         `;
@@ -557,13 +538,324 @@
       });
     }
 
-    // EXPORTACIÓN A EXCEL COMPLETO (LIBRO MULTI-HOJA COMPATIBLE CON EXCEL/CALC/SHEETS)
+    // MODAL DE LA FICHA (INTEGRA REGISTROS DIRECTAMENTE)
+    function openModal(boyId = null, scrollToObs = false) {
+      selectedHobbies.clear();
+      document.getElementById("boyForm").reset();
+      document.getElementById("btnDelete").classList.add("hidden");
+      document.getElementById("newHobbyInput").value = "";
+      document.getElementById("inFichaText").value = "";
+      document.getElementById("inFichaDate").value = today;
+
+      if (boyId) {
+        const boy = boys.find(b => b.id === boyId);
+        if (boy) {
+          document.getElementById("modalTitle").innerText = boy.name;
+          document.getElementById("modalSubtitle").innerText = `Ficha de ${boy.role}`;
+          document.getElementById("boyId").value = boy.id;
+          document.getElementById("boyName").value = boy.name;
+          document.getElementById("boyAge").value = boy.age || '';
+          document.getElementById("boySiblings").value = boy.siblings !== undefined ? boy.siblings : 0;
+          document.getElementById("boyPhone").value = boy.phone || '';
+          
+          const roleRadio = document.querySelector(`input[name="boyRole"][value="${boy.role}"]`);
+          if (roleRadio) roleRadio.checked = true;
+
+          (boy.hobbies || []).forEach(h => {
+            selectedHobbies.add(h);
+            if (!availableHobbies.includes(h)) availableHobbies.push(h);
+          });
+
+          // Cargar copia de observaciones asociadas
+          currentFichaObs = boy.observations ? JSON.parse(JSON.stringify(boy.observations)) : [];
+          document.getElementById("btnDelete").classList.remove("hidden");
+        }
+      } else {
+        document.getElementById("modalTitle").innerText = "Registrar Nuevo Muchacho";
+        document.getElementById("modalSubtitle").innerText = "Nueva alta en la catequesis";
+        document.getElementById("boyId").value = "";
+        currentFichaObs = [];
+      }
+
+      renderHobbiesSelector();
+      renderFichaObservations();
+      document.getElementById("modalForm").classList.remove("hidden");
+
+      if (scrollToObs) {
+        setTimeout(() => {
+          document.getElementById("fichaObservationsSection").scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      }
+    }
+
+    function closeModal() {
+      document.getElementById("modalForm").classList.add("hidden");
+    }
+
+    // GESTIÓN DE OBSERVACIONES DIRECTAMENTE EN LA FICHA
+    function renderFichaObservations() {
+      const container = document.getElementById("inFichaObsList");
+      document.getElementById("fichaObsCount").innerText = currentFichaObs.length;
+      container.innerHTML = "";
+
+      if (currentFichaObs.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-4 text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+            <p class="text-xs">No hay anotaciones previas en esta ficha</p>
+          </div>
+        `;
+        return;
+      }
+
+      const sorted = [...currentFichaObs].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+      sorted.forEach(obs => {
+        const item = document.createElement("div");
+        item.className = "p-2 bg-white border border-slate-200 rounded-xl text-xs space-y-1 shadow-xs";
+        item.innerHTML = `
+          <div class="flex justify-between items-center text-[11px]">
+            <span class="bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-md">📅 ${obs.date}</span>
+            <button type="button" onclick="deleteFichaObs('${obs.id}')" class="text-slate-400 hover:text-rose-600 font-bold px-1.5 transition" title="Borrar nota">✕</button>
+          </div>
+          <p class="text-slate-700 whitespace-pre-wrap leading-relaxed mt-0.5">${obs.text}</p>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function addObsFromFicha() {
+      const date = document.getElementById("inFichaDate").value || today;
+      const text = document.getElementById("inFichaText").value.trim();
+
+      if (!text) {
+        alert("Escribe el texto de la observación antes de añadir.");
+        return;
+      }
+
+      const newObs = {
+        id: "obs-" + Date.now(),
+        date: date,
+        text: text
+      };
+
+      currentFichaObs.unshift(newObs);
+      document.getElementById("inFichaText").value = "";
+      renderFichaObservations();
+    }
+
+    function deleteFichaObs(obsId) {
+      currentFichaObs = currentFichaObs.filter(o => o.id !== obsId);
+      renderFichaObservations();
+    }
+
+    // GUARDAR FICHA COMPLETA (DATOS BÁSICOS + REGISTROS ASOCIADOS)
+    function saveBoy(e) {
+      e.preventDefault();
+      const id = document.getElementById("boyId").value || Date.now().toString();
+      const name = document.getElementById("boyName").value.trim();
+      const role = document.querySelector('input[name="boyRole"]:checked').value;
+      const age = parseInt(document.getElementById("boyAge").value) || null;
+      const siblings = parseInt(document.getElementById("boySiblings").value) || 0;
+      const phone = document.getElementById("boyPhone").value.trim();
+      const hobbiesList = Array.from(selectedHobbies);
+
+      // Si había texto sin guardar en la cajita de observación, añadirlo automáticamente
+      const pendingText = document.getElementById("inFichaText").value.trim();
+      if (pendingText) {
+        currentFichaObs.unshift({
+          id: "obs-" + Date.now(),
+          date: document.getElementById("inFichaDate").value || today,
+          text: pendingText
+        });
+      }
+
+      const existingIndex = boys.findIndex(b => b.id === id);
+      const boyData = { 
+        id, 
+        name, 
+        role, 
+        age, 
+        siblings, 
+        phone, 
+        hobbies: hobbiesList,
+        observations: currentFichaObs
+      };
+
+      if (existingIndex > -1) {
+        boys[existingIndex] = boyData;
+      } else {
+        boys.push(boyData);
+      }
+
+      saveState();
+      renderList();
+      closeModal();
+    }
+
+    function deleteCurrentBoy() {
+      const id = document.getElementById("boyId").value;
+      if (confirm("¿Seguro que deseas eliminar este muchacho y todos sus registros asociados?")) {
+        boys = boys.filter(b => b.id !== id);
+        saveState();
+        renderList();
+        closeModal();
+      }
+    }
+
+    // AFICIONES DINÁMICAS
+    function addNewHobby() {
+      const input = document.getElementById("newHobbyInput");
+      const val = input.value.trim();
+      if (!val) return;
+
+      const existing = availableHobbies.find(h => h.toLowerCase() === val.toLowerCase());
+      if (existing) {
+        selectedHobbies.add(existing);
+      } else {
+        availableHobbies.push(val);
+        selectedHobbies.add(val);
+        saveState();
+      }
+
+      input.value = "";
+      renderHobbiesSelector();
+    }
+
+    function renderHobbiesSelector() {
+      const container = document.getElementById("hobbiesSelector");
+      container.innerHTML = "";
+
+      availableHobbies.forEach(hobby => {
+        const isSelected = selectedHobbies.has(hobby);
+        const pill = document.createElement("button");
+        pill.type = "button";
+        pill.onclick = () => {
+          if (selectedHobbies.has(hobby)) {
+            selectedHobbies.delete(hobby);
+          } else {
+            selectedHobbies.add(hobby);
+          }
+          renderHobbiesSelector();
+        };
+        pill.className = `px-2.5 py-1 rounded-full text-[11px] font-medium transition ${
+          isSelected ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }`;
+        pill.innerText = (isSelected ? "✓ " : "+ ") + hobby;
+        container.appendChild(pill);
+      });
+    }
+
+    // ASISTENCIA
+    function renderAttendance() {
+      const date = document.getElementById("attendanceDate").value || today;
+      const dayRecord = attendance[date] || {};
+      const container = document.getElementById("attendanceList");
+      container.innerHTML = "";
+
+      let presentCount = 0;
+      const total = boys.length;
+
+      document.getElementById("totalStudents").innerText = total;
+
+      boys.forEach(boy => {
+        const isPresent = dayRecord[boy.id] === true;
+        if (isPresent) presentCount++;
+
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl shadow-xs";
+        row.innerHTML = `
+          <div>
+            <p class="text-xs font-bold text-slate-800">${boy.name}</p>
+            <p class="text-[10px] text-slate-500">${boy.role}</p>
+          </div>
+          <div class="flex space-x-1.5">
+            <button onclick="setAttendance('${boy.id}', true)" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${isPresent ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700'}">
+              <span>✓ Presente</span>
+            </button>
+            <button onclick="setAttendance('${boy.id}', false)" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${!isPresent && dayRecord[boy.id] !== undefined ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-700'}">
+              <span>✕ Falta</span>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      document.getElementById("presentCount").innerText = presentCount;
+      const rate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
+      document.getElementById("rateLabel").innerText = `${rate}%`;
+      document.getElementById("attendanceProgressBar").style.width = `${rate}%`;
+    }
+
+    function setAttendance(boyId, status) {
+      const date = document.getElementById("attendanceDate").value || today;
+      if (!attendance[date]) attendance[date] = {};
+      attendance[date][boyId] = status;
+      saveState();
+      renderAttendance();
+    }
+
+    function markAllPresent() {
+      const date = document.getElementById("attendanceDate").value || today;
+      if (!attendance[date]) attendance[date] = {};
+      boys.forEach(b => {
+        attendance[date][b.id] = true;
+      });
+      saveState();
+      renderAttendance();
+    }
+
+    // ESTADÍSTICAS Y EXCEL
+    function updateStats() {
+      const total = boys.length;
+      document.getElementById("statTotal").innerText = total;
+
+      const confCount = boys.filter(b => b.role === 'Confirmación' || b.role === 'Ambos').length;
+      const monCount = boys.filter(b => b.role === 'Monaguillo' || b.role === 'Ambos').length;
+      document.getElementById("statSubgroups").innerText = `${confCount} Conf. · ${monCount} Mon.`;
+
+      const sessionDates = Object.keys(attendance);
+      if (sessionDates.length > 0 && total > 0) {
+        let totalPresents = 0;
+        let totalPossible = sessionDates.length * total;
+        sessionDates.forEach(d => {
+          Object.values(attendance[d]).forEach(val => {
+            if (val === true) totalPresents++;
+          });
+        });
+        const avg = Math.round((totalPresents / totalPossible) * 100);
+        document.getElementById("statAvgAttendance").innerText = `${avg}%`;
+      } else {
+        document.getElementById("statAvgAttendance").innerText = `100%`;
+      }
+
+      const hobbyCounts = {};
+      boys.forEach(b => {
+        (b.hobbies || []).forEach(h => {
+          hobbyCounts[h] = (hobbyCounts[h] || 0) + 1;
+        });
+      });
+
+      const hobbiesCloud = document.getElementById("hobbiesCloud");
+      hobbiesCloud.innerHTML = "";
+      const sorted = Object.entries(hobbyCounts).sort((a,b) => b[1] - a[1]);
+
+      if (sorted.length === 0) {
+        hobbiesCloud.innerHTML = `<span class="text-xs text-slate-400">Sin aficiones registradas todavía</span>`;
+      } else {
+        sorted.forEach(([h, count]) => {
+          const pill = document.createElement("span");
+          pill.className = "bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-xl flex items-center space-x-1";
+          pill.innerHTML = `<span>${h}</span><b class="bg-indigo-200 text-indigo-800 text-[10px] px-1.5 py-0.2 rounded-full">${count}</b>`;
+          hobbiesCloud.appendChild(pill);
+        });
+      }
+    }
+
     function exportToExcel() {
       const sessionDates = Object.keys(attendance).sort();
 
-      // HOJA 1: MUCHACHOS (Directorio y resumen)
-      let sheet1Rows = "";
-      sheet1Rows += `
+      // Hoja 1: Muchachos
+      let sheet1Rows = `
         <Row ss:StyleID="HeaderStyle">
           <Cell><Data ss:Type="String">Nombre y Apellidos</Data></Cell>
           <Cell><Data ss:Type="String">Grupo</Data></Cell>
@@ -588,7 +880,6 @@
           if (attendance[d] && attendance[d][b.id] === true) presents++;
         });
         const pct = sessionDates.length > 0 ? Math.round((presents / sessionDates.length) * 100) + "%" : "100%";
-
         const phoneStyle = hasPhone ? "" : ` ss:StyleID="AlertStyle"`;
 
         sheet1Rows += `
@@ -606,9 +897,8 @@
         `;
       });
 
-      // HOJA 2: OBSERVACIONES (Historial cronológico)
-      let sheet2Rows = "";
-      sheet2Rows += `
+      // Hoja 2: Observaciones
+      let sheet2Rows = `
         <Row ss:StyleID="HeaderStyle">
           <Cell><Data ss:Type="String">Fecha</Data></Cell>
           <Cell><Data ss:Type="String">Muchacho</Data></Cell>
@@ -653,13 +943,11 @@
         });
       }
 
-      // HOJA 3: MATRIZ DE ASISTENCIA
-      let sheet3Rows = "";
+      // Hoja 3: Matriz de Asistencia
       let headerCells = `
         <Cell><Data ss:Type="String">Muchacho</Data></Cell>
         <Cell><Data ss:Type="String">Grupo</Data></Cell>
       `;
-
       sessionDates.forEach(d => {
         headerCells += `<Cell><Data ss:Type="String">${d}</Data></Cell>`;
       });
@@ -668,7 +956,7 @@
         <Cell><Data ss:Type="String">% Asistencia</Data></Cell>
       `;
 
-      sheet3Rows += `<Row ss:StyleID="HeaderStyle">${headerCells}</Row>`;
+      let sheet3Rows = `<Row ss:StyleID="HeaderStyle">${headerCells}</Row>`;
 
       boys.forEach(b => {
         let presents = 0;
@@ -696,7 +984,6 @@
         sheet3Rows += `<Row>${rowCells}</Row>`;
       });
 
-      // LIBRO XML CON ESTILOS PARA EXCEL (SpreadsheetML)
       const excelXml = `<?xml version="1.0" encoding="UTF-8"?>
 <?mso-application progid="Excel.Sheet"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
@@ -780,327 +1067,6 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&apos;");
-    }
-
-    // GESTIÓN DE AFICIONES DINÁMICAS
-    function addNewHobby() {
-      const input = document.getElementById("newHobbyInput");
-      const val = input.value.trim();
-      if (!val) return;
-
-      const existing = availableHobbies.find(h => h.toLowerCase() === val.toLowerCase());
-      if (existing) {
-        selectedHobbies.add(existing);
-      } else {
-        availableHobbies.push(val);
-        selectedHobbies.add(val);
-        saveState();
-      }
-
-      input.value = "";
-      renderHobbiesSelector();
-    }
-
-    function renderHobbiesSelector() {
-      const container = document.getElementById("hobbiesSelector");
-      container.innerHTML = "";
-
-      availableHobbies.forEach(hobby => {
-        const isSelected = selectedHobbies.has(hobby);
-        const pill = document.createElement("button");
-        pill.type = "button";
-        pill.onclick = () => {
-          if (selectedHobbies.has(hobby)) {
-            selectedHobbies.delete(hobby);
-          } else {
-            selectedHobbies.add(hobby);
-          }
-          renderHobbiesSelector();
-        };
-        pill.className = `px-2.5 py-1 rounded-full text-[11px] font-medium transition ${
-          isSelected 
-            ? 'bg-indigo-600 text-white shadow-xs' 
-            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-        }`;
-        pill.innerText = (isSelected ? "✓ " : "+ ") + hobby;
-        container.appendChild(pill);
-      });
-    }
-
-    // OBSERVACIONES
-    function openObservationsModal(boyId) {
-      currentObsBoyId = boyId;
-      const boy = boys.find(b => b.id === boyId);
-      if (!boy) return;
-
-      if (!boy.observations) boy.observations = [];
-
-      document.getElementById("obsBoyName").innerText = boy.name + " (" + boy.role + ")";
-      document.getElementById("obsDate").value = today;
-      document.getElementById("obsText").value = "";
-
-      renderObservationsList();
-      document.getElementById("modalObservations").classList.remove("hidden");
-    }
-
-    function closeObservationsModal() {
-      document.getElementById("modalObservations").classList.add("hidden");
-      currentObsBoyId = null;
-      renderList();
-    }
-
-    function renderObservationsList() {
-      const boy = boys.find(b => b.id === currentObsBoyId);
-      const container = document.getElementById("obsList");
-      container.innerHTML = "";
-
-      if (!boy || !boy.observations || boy.observations.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-6 text-slate-400 bg-slate-50 rounded-xl">
-            <p class="text-xl mb-1">📋</p>
-            <p class="text-xs">No hay observaciones anotadas aún</p>
-          </div>
-        `;
-        return;
-      }
-
-      const sorted = [...boy.observations].sort((a,b) => new Date(b.date) - new Date(a.date));
-
-      sorted.forEach(obs => {
-        const card = document.createElement("div");
-        card.className = "bg-white border border-slate-200 rounded-xl p-3 shadow-xs space-y-1 relative group";
-        card.innerHTML = `
-          <div class="flex justify-between items-center text-[11px]">
-            <span class="bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-md">📅 ${obs.date}</span>
-            <button onclick="deleteObservation('${obs.id}')" class="text-slate-300 hover:text-rose-600 font-bold px-1.5 transition" title="Eliminar observación">✕</button>
-          </div>
-          <p class="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed mt-1">${obs.text}</p>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function addObservation(e) {
-      e.preventDefault();
-      const boy = boys.find(b => b.id === currentObsBoyId);
-      if (!boy) return;
-
-      const date = document.getElementById("obsDate").value || today;
-      const text = document.getElementById("obsText").value.trim();
-      if (!text) return;
-
-      if (!boy.observations) boy.observations = [];
-
-      boy.observations.push({
-        id: "obs-" + Date.now(),
-        date: date,
-        text: text
-      });
-
-      saveState();
-      document.getElementById("obsText").value = "";
-      renderObservationsList();
-    }
-
-    function deleteObservation(obsId) {
-      const boy = boys.find(b => b.id === currentObsBoyId);
-      if (!boy || !boy.observations) return;
-
-      if (confirm("¿Deseas eliminar esta observación?")) {
-        boy.observations = boy.observations.filter(o => o.id !== obsId);
-        saveState();
-        renderObservationsList();
-      }
-    }
-
-    // FORMULARIO PRINCIPAL
-    function openModal(boyId = null) {
-      selectedHobbies.clear();
-      document.getElementById("boyForm").reset();
-      document.getElementById("btnDelete").classList.add("hidden");
-      document.getElementById("newHobbyInput").value = "";
-
-      if (boyId) {
-        const boy = boys.find(b => b.id === boyId);
-        if (boy) {
-          document.getElementById("modalTitle").innerText = "Editar Muchacho";
-          document.getElementById("boyId").value = boy.id;
-          document.getElementById("boyName").value = boy.name;
-          document.getElementById("boyAge").value = boy.age || '';
-          document.getElementById("boySiblings").value = boy.siblings !== undefined ? boy.siblings : 0;
-          document.getElementById("boyPhone").value = boy.phone || '';
-          
-          const roleRadio = document.querySelector(`input[name="boyRole"][value="${boy.role}"]`);
-          if (roleRadio) roleRadio.checked = true;
-
-          (boy.hobbies || []).forEach(h => {
-            selectedHobbies.add(h);
-            if (!availableHobbies.includes(h)) availableHobbies.push(h);
-          });
-          document.getElementById("btnDelete").classList.remove("hidden");
-        }
-      } else {
-        document.getElementById("modalTitle").innerText = "Registrar Nuevo Muchacho";
-        document.getElementById("boyId").value = "";
-      }
-
-      renderHobbiesSelector();
-      document.getElementById("modalForm").classList.remove("hidden");
-    }
-
-    function closeModal() {
-      document.getElementById("modalForm").classList.add("hidden");
-    }
-
-    function saveBoy(e) {
-      e.preventDefault();
-      const id = document.getElementById("boyId").value || Date.now().toString();
-      const name = document.getElementById("boyName").value.trim();
-      const role = document.querySelector('input[name="boyRole"]:checked').value;
-      const age = parseInt(document.getElementById("boyAge").value) || null;
-      const siblings = parseInt(document.getElementById("boySiblings").value) || 0;
-      const phone = document.getElementById("boyPhone").value.trim();
-      const hobbiesList = Array.from(selectedHobbies);
-
-      const existingIndex = boys.findIndex(b => b.id === id);
-      const prevObservations = existingIndex > -1 ? (boys[existingIndex].observations || []) : [];
-
-      const boyData = { 
-        id, 
-        name, 
-        role, 
-        age, 
-        siblings, 
-        phone, 
-        hobbies: hobbiesList,
-        observations: prevObservations
-      };
-
-      if (existingIndex > -1) {
-        boys[existingIndex] = boyData;
-      } else {
-        boys.push(boyData);
-      }
-
-      saveState();
-      renderList();
-      closeModal();
-    }
-
-    function deleteCurrentBoy() {
-      const id = document.getElementById("boyId").value;
-      if (confirm("¿Seguro que deseas eliminar este registro?")) {
-        boys = boys.filter(b => b.id !== id);
-        saveState();
-        renderList();
-        closeModal();
-      }
-    }
-
-    // ASISTENCIA
-    function renderAttendance() {
-      const date = document.getElementById("attendanceDate").value || today;
-      const dayRecord = attendance[date] || {};
-      const container = document.getElementById("attendanceList");
-      container.innerHTML = "";
-
-      let presentCount = 0;
-      const total = boys.length;
-
-      document.getElementById("totalStudents").innerText = total;
-
-      boys.forEach(boy => {
-        const isPresent = dayRecord[boy.id] === true;
-        if (isPresent) presentCount++;
-
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl shadow-xs";
-        row.innerHTML = `
-          <div>
-            <p class="text-xs font-bold text-slate-800">${boy.name}</p>
-            <p class="text-[10px] text-slate-500">${boy.role}</p>
-          </div>
-          <div class="flex space-x-1.5">
-            <button onclick="setAttendance('${boy.id}', true)" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${isPresent ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700'}">
-              <span>✓ Presente</span>
-            </button>
-            <button onclick="setAttendance('${boy.id}', false)" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${!isPresent && dayRecord[boy.id] !== undefined ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-700'}">
-              <span>✕ Falta</span>
-            </button>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-
-      document.getElementById("presentCount").innerText = presentCount;
-      const rate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
-      document.getElementById("rateLabel").innerText = `${rate}%`;
-      document.getElementById("attendanceProgressBar").style.width = `${rate}%`;
-    }
-
-    function setAttendance(boyId, status) {
-      const date = document.getElementById("attendanceDate").value || today;
-      if (!attendance[date]) attendance[date] = {};
-      attendance[date][boyId] = status;
-      saveState();
-      renderAttendance();
-    }
-
-    function markAllPresent() {
-      const date = document.getElementById("attendanceDate").value || today;
-      if (!attendance[date]) attendance[date] = {};
-      boys.forEach(b => {
-        attendance[date][b.id] = true;
-      });
-      saveState();
-      renderAttendance();
-    }
-
-    // ESTADÍSTICAS
-    function updateStats() {
-      const total = boys.length;
-      document.getElementById("statTotal").innerText = total;
-
-      const confCount = boys.filter(b => b.role === 'Confirmación' || b.role === 'Ambos').length;
-      const monCount = boys.filter(b => b.role === 'Monaguillo' || b.role === 'Ambos').length;
-      document.getElementById("statSubgroups").innerText = `${confCount} Conf. · ${monCount} Mon.`;
-
-      const sessionDates = Object.keys(attendance);
-      if (sessionDates.length > 0 && total > 0) {
-        let totalPresents = 0;
-        let totalPossible = sessionDates.length * total;
-        sessionDates.forEach(d => {
-          Object.values(attendance[d]).forEach(val => {
-            if (val === true) totalPresents++;
-          });
-        });
-        const avg = Math.round((totalPresents / totalPossible) * 100);
-        document.getElementById("statAvgAttendance").innerText = `${avg}%`;
-      } else {
-        document.getElementById("statAvgAttendance").innerText = `100%`;
-      }
-
-      const hobbyCounts = {};
-      boys.forEach(b => {
-        (b.hobbies || []).forEach(h => {
-          hobbyCounts[h] = (hobbyCounts[h] || 0) + 1;
-        });
-      });
-
-      const hobbiesCloud = document.getElementById("hobbiesCloud");
-      hobbiesCloud.innerHTML = "";
-      const sorted = Object.entries(hobbyCounts).sort((a,b) => b[1] - a[1]);
-
-      if (sorted.length === 0) {
-        hobbiesCloud.innerHTML = `<span class="text-xs text-slate-400">Sin aficiones registradas todavía</span>`;
-      } else {
-        sorted.forEach(([h, count]) => {
-          const pill = document.createElement("span");
-          pill.className = "bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-xl flex items-center space-x-1";
-          pill.innerHTML = `<span>${h}</span><b class="bg-indigo-200 text-indigo-800 text-[10px] px-1.5 py-0.2 rounded-full">${count}</b>`;
-          hobbiesCloud.appendChild(pill);
-        });
-      }
     }
 
     function exportData() {
